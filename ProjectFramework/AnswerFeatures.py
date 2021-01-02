@@ -1,38 +1,53 @@
 import pandas as pd
-
+import math
 
 class AnswerF:
     def __init__(self,df):
         # todo self init
         self.df = df
+        self.total_var = -1;
         self.unique_answers = df['answer'].unique()
         self.num_of_ans = df['answer'].nunique()
         self.avg_for_answer = df['answer'].size / self.num_of_ans
+        self.answers_distribution = self.build_answers_distribution_array(self)
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self,ans_name):
         return (self.df['answer'] == ans_name).sum()
 
-    # get list - for every answer, it calculates the
-    def get_answers_distance_from_avg(self):
-        dfa_list = []
-        for i in self.unique_answers:
-            distance_from_avg = pow(self.get_answers_number(i) - self.avg_for_answer,2)
-            dfa_list.append(distance_from_avg)
-        return dfa_list
+    # This function builds the array of how many people chose each answer
+    def build_answers_distribution_array(self):
+        dictionary = {}
+        for answer_name in self.unique_answers:
+            answer_number = self.get_answers_number(self, answer_name)/self.num_of_ans
+            dictionary[answer_name] = answer_number
+        return dictionary
 
+    # get list - for every answer, it calculates the distance between uniform distribution
+    # and the amount of solvers how chose this answer
+    def get_answers_distance_from_uniform(self):
+        dfu_dict = {}
+        for answer_name in self.unique_answers:
+            distance_from_avg = pow(self.answers_distribution(answer_name) - self.avg_for_answer,2)
+            dfu_dict[answer_name] = distance_from_avg
+        return dfu_dict
+
+    # get the variance value of all answers distribution
     def get_total_var(self):
         var = 0
-        for i in self.unique_answers:
-            var = var + ( pow(self.get_answers_number(i) - self.avg_for_answer,  self.num_of_ans2) / self.num_of_ans )
+        for answer_name in self.unique_answers:
+            var = var + (pow(self.answers_distribution(answer_name) - self.avg_for_answer, 2) / self.num_of_ans)
+        self.total_var = var
         return var
 
+    # get the standard deviation value of all answers distribution
     def get_total_std(self, var_list):
-        std_list = []
-        for i in self.unique_answers:
-            var = pow(self.get_answers_number(i) - self.avg_for_answer,2) / self.num_of_ans
-            list.append(var)
-        return std_list
+        if self.total_var == -1:
+            self.get_total_var()
+        std = math.sqrt(self.total_var)
+        self.total_std = std
+        return std
+
 
 
     """
