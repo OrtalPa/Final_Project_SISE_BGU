@@ -76,6 +76,7 @@ class AnswerF:
         return difference - self.total_std
 
 
+# test function
 def main():
     cereal_df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv")
     a = AnswerF(cereal_df)
