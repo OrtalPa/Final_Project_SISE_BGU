@@ -1,5 +1,6 @@
 import pandas as pd
 import math
+from scipy.stats import entropy
 
 class AnswerF:
     def __init__(self,df):
@@ -45,7 +46,24 @@ class AnswerF:
         std = math.sqrt(self.total_var)
         return std
 
+    # get entropy of answers distribution
+    def feature_entropy(self):
+        return entropy(self.answers_distribution.values(), base=None)
 
+    # get distance between two highest answers and subtract std
+    def feature_distance_between_first_and_second_answer(self):
+        sorted_distribution_by_value = sorted(self.answers_distribution, key=self.answers_distribution.get,reverse=True)
+        difference = sorted_distribution_by_value[0] - sorted_distribution_by_value[1]
+        return difference - self.total_std
+
+    # calculates the distance between first and last answer someone picked, divided by the std
+    def feature_distance_between_first_and_last_answer(self):
+        sorted_distribution_by_value = sorted(self.answers_distribution, key=self.answers_distribution.get,reverse=True)
+        for value in sorted_distribution_by_value:
+            if value != 0:
+                last_value = value
+        difference = sorted_distribution_by_value[0] - last_value
+        return difference - self.total_std
 
     """
     המרחק של כל בנאדם מהממוצע שקרה בפועל,
@@ -54,7 +72,7 @@ class AnswerF:
     מרחקים והפרשים בין המקום הראשון למקום השני.
      האם יש תשובה שקיבלה יותר מ50 אחוז
     האם ההפרש ממקום ראשון לשני הוא גדול יותר מהסטיית תקן
-    התפלגות בפעול - כמה ענו כל תשובה
+     התפלגות בפעול - כמה ענו כל תשובה
     אנטרופיה
     המרחק בין מקום ראשון למקום אחרון(מקום אחרון שמישהו בחר בו)
     
@@ -62,5 +80,4 @@ class AnswerF:
     מרחקים בין התפלגויות בכל תת קבוצה
     השונות של אחוז הפפולריות של התשובה הפפולרית ביותר
     האם השתנה התשובה במקום הראשון בין תתי קבוצות
-    
     """
