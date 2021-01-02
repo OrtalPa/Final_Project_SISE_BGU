@@ -5,7 +5,8 @@ class AnswerF:
     def __init__(self,df):
         # todo self init
         self.df = df
-        self.total_var = -1;
+        self.total_var = self.get_total_var()
+        self.total_std = self.get_total_std()
         self.unique_answers = df['answer'].unique()
         self.num_of_ans = df['answer'].nunique()
         self.avg_for_answer = df['answer'].size / self.num_of_ans
@@ -37,15 +38,11 @@ class AnswerF:
         var = 0
         for answer_name in self.unique_answers:
             var = var + (pow(self.answers_distribution(answer_name) - self.avg_for_answer, 2) / self.num_of_ans)
-        self.total_var = var
         return var
 
     # get the standard deviation value of all answers distribution
     def get_total_std(self, var_list):
-        if self.total_var == -1:
-            self.get_total_var()
         std = math.sqrt(self.total_var)
-        self.total_std = std
         return std
 
 
