@@ -44,12 +44,12 @@ class AnswerSubF:
         return dfu_dict
 
     # get the variance value of all answers distribution
-    def get_total_var(self,answers_count):
+    def get_var(self,answers_count):
         var = np.var(list(answers_count.values()))
         return var
 
     # get the standard deviation value of all answers distribution
-    def get_total_std(self,answers_count):
+    def get_std(self,answers_count):
         std = np.std(list(answers_count.values()))
         return std
 
@@ -99,7 +99,22 @@ class AnswerSubF:
 def main():
     cereal_df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv")
     a = AnswerSubF(cereal_df)
-    a.build_sub_groups()
+    subs = a.build_sub_groups(cereal_df)
+    group_num = 0;
+    for sub in subs:
+        ans_count = a.build_answers_count_array(sub)
+        b = a.get_std(ans_count)
+        print(f'std {group_num}: {b}')
+        c = a.get_var(ans_count)
+        print(f'var {group_num}: {c}')
+        d = a.feature_distance_between_first_and_last_answer(ans_count,b)
+        print(f'first and last {group_num}: {d}')
+        e = a.feature_distance_between_first_and_second_answer(ans_count,b)
+        print(f'first and second {group_num}: {e}')
+        f = a.feature_entropy(sub)
+        print(f'Entropy {group_num}: {f}')
+        group_num += 1
+
 
 
 if __name__ == "__main__":
