@@ -8,7 +8,7 @@ DATA_PATH = os.path.dirname(path.parent) + '\\ProcessedData'
 
 
 def get_answer_names(data_frame):
-    col_names = ['Worker ID', 'Problem', 'Age',	'Gender', 'Hand', 'Strong hand', 'Education', 'Answer',	'Confidence', 'Subjective Difficulty', 'Objective Difficutly', 'Psolve', 'Class', 'group_number']
+    col_names = ['Worker ID', 'Problem', 'Age',	'Gender', 'Hand', 'Strong hand', 'Education', 'Answer',	'Confidence', 'Subjective Difficulty', 'Objective Difficutly', 'Psolve', 'Class', 'group_number', 'sum_prediction']
     data_frame = data_frame.drop(col_names, axis=1, errors='ignore')
     return pd.Series(data_frame.columns).apply(lambda x: str(x))
 
