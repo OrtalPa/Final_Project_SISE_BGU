@@ -64,6 +64,21 @@ class ConfidenceF:
         highest = float(sorted(self.df_conf, reverse=True)[0])
         return float(highest-self.get_total_mean())
 
+    # This function builds the array of how many people chose each answer
+    def build_answers_count_array(self):
+        dictionary = {}
+        for answer_name in df['answer'].unique():
+            answer_number = self.get_answers_number(answer_name)
+            dictionary[answer_name] = answer_number
+        return dictionary
+
+    #
+    def get_confidence_of_most_popular_answer(self):
+        answers_count = self.build_answers_count_array()
+        sorted_distribution_by_value = sorted(answers_count.values(), reverse=True)
+        sorted_distribution_by_value[0]
+
+
 # test function
 def main():
     df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\ProcessedData\\RawData_Apple.csv")

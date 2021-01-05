@@ -1,18 +1,18 @@
 import pandas as pd
 from scipy.stats import entropy
 import numpy as np
-from sklearn.utils import shuffle
 from scipy.stats import wasserstein_distance
-from GetProcessedData import get_answer_names
+from sklearn.utils import shuffle
 
 
 class AnswerF:
 
     def __init__(self, df):
+        # todo self init
         self.df = df
-        self.unique_answers = pd.unique(df['Answer'])  # get_answer_names(df)
-        self.num_of_ans = self.unique_answers.size
-        self.avg_for_answer = df['Answer'].size / self.num_of_ans
+        self.unique_answers = df['answer'].unique()
+        self.num_of_ans = df['answer'].nunique()
+        self.avg_for_answer = df['answer'].size / self.num_of_ans
         self.answers_distribution = self.build_answers_distribution_array()
         self.answers_count = self.build_answers_count_array()
         self.sorted_distribution_by_value = sorted(self.answers_count.values(), reverse=True)
@@ -22,7 +22,7 @@ class AnswerF:
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, ans_name):
-        return (self.df['Answer'] == ans_name).sum()
+        return (self.df['answer'] == ans_name).sum()
 
     # This function builds the array of how many people chose each answer
     def build_answers_distribution_array(self):
@@ -51,17 +51,18 @@ class AnswerF:
 
     # get the variance value of all answers distribution
     def get_total_var(self):
-        var = float(np.var(list(self.answers_count.values())))
+        var = np.var(list(self.answers_count.values()))
         return var
 
     # get the standard deviation value of all answers distribution
     def get_total_std(self):
-        std = float(np.std(list(self.answers_count.values())))
+        std = np.std(list(self.answers_count.values()))
         return std
 
     # get entropy of answers distribution
     def feature_entropy(self):
-        return float(entropy(np.array(self.answers_count.values()), base=None))
+        value, counts = np.unique(self.df["answer"], return_counts=True)
+        return entropy(counts, base=None)
 
     # get distance between two highest answers and subtract std
     def feature_distance_between_first_and_second_answer(self):
@@ -74,34 +75,18 @@ class AnswerF:
             if value != 0:
                 last_value = value
         difference = float(self.sorted_distribution_by_value[0]) - float(last_value)
-        return float(difference - self.total_std)
+        return difference - self.total_std
 
     # return 1 if the most popular answer was picked more than 50%, otherwise 0
-    def feature_above_50_percent(self):
-        if self.sorted_distribution_by_value[0] / self.num_of_ans >= 0.5:
+    def feature_above_50_precent(self):
+        if self.sorted_distribution_by_value[0]/self.num_of_ans>=0.5:
             return 1
         return 0
 
     # return the wasserstein between the uniform distribution
     def feature_wasserstein_distance_between_uniform_distribution(self):
-        this_dist = []
-        for val in self.answers_distribution.values():
-            this_dist.append(float(val))
-        uniform_distribution = []
-        for i in range(self.num_of_ans):
-            uniform_distribution.append(float(self.avg_for_answer / self.num_of_ans))
-        return wasserstein_distance(this_dist, uniform_distribution)
-
-    # calculates entropy of the data when eliminating low rate answers (under defined threshold)
-    def feature_entropy_without_low_rate_answers(self):
-        THRESHOLD = 15 / 100
-        updated_list = []
-        all_answers = self.df['Answer'].size
-        for value in self.answers_count.values():
-            if value >= all_answers * THRESHOLD:
-                updated_list.append(value)
-        return float(entropy(np.array(updated_list), base=None))
-
+        uniform_distribution = np.full(1, self.num_of_ans, self.avg_for_answer)
+        return wasserstein_distance(self.answers_distribution,uniform_distribution)
 
 # test function
 def main():
@@ -117,13 +102,7 @@ def main():
     # print(f'first and second: {e}')
     # f = a.feature_entropy()
     # print(f'Entropy: {f}')
-    # a.build_sub_groups()
-    g = a.feature_entropy_without_low_rate_answers()
-    print(f'Entropy without low rate: {g}')
-    h = a.feature_above_50_percent()
-    print(f'above 50 precent: {h}')
-    i = a.feature_wasserstein_distance_between_uniform_distribution()
-    print(f'wasserstein_distance: {h}')
+    a.build_sub_groups()
 
 
 if __name__ == "__main__":
