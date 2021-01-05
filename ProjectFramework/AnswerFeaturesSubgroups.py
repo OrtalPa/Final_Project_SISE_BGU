@@ -2,6 +2,7 @@ import pandas as pd
 from scipy.stats import entropy
 import numpy as np
 from sklearn.utils import shuffle
+from GetProcessedData import get_answer_names
 
 
 NUM_OF_GROUPS = 3
@@ -9,14 +10,12 @@ NUM_OF_GROUPS = 3
 class AnswerSubF:
 
     def __init__(self, df):
-        # todo self init
-        self.df = df
-        self.unique_answers = df['answer'].unique()
-        self.num_of_ans = df['answer'].nunique()
+        self.unique_answers = get_answer_names(df)
+        self.num_of_ans = self.unique_answers.size
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, df, ans_name):
-        return (df['answer'] == ans_name).sum()
+        return (df['Answer'] == ans_name).sum()
 
     # This function builds the array of how many people chose each answer
     def build_answers_distribution_array(self,df):

@@ -3,15 +3,16 @@ from scipy.stats import entropy
 import numpy as np
 from sklearn.utils import shuffle
 from scipy.stats import wasserstein_distance
+from GetProcessedData import get_answer_names
 
 class AnswerF:
 
     def __init__(self, df):
         # todo self init
         self.df = df
-        self.unique_answers = df['answer'].unique()
-        self.num_of_ans = df['answer'].nunique()
-        self.avg_for_answer = df['answer'].size / self.num_of_ans
+        self.unique_answers = get_answer_names(df)
+        self.num_of_ans = self.unique_answers.size
+        self.avg_for_answer = df['Answer'].size / self.num_of_ans
         self.answers_distribution = self.build_answers_distribution_array()
         self.answers_count = self.build_answers_count_array()
 
@@ -20,7 +21,7 @@ class AnswerF:
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, ans_name):
-        return (self.df['answer'] == ans_name).sum()
+        return (self.df['Answer'] == ans_name).sum()
 
     # This function builds the array of how many people chose each answer
     def build_answers_distribution_array(self):
