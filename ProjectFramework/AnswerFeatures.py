@@ -2,6 +2,7 @@ import pandas as pd
 from scipy.stats import entropy
 import numpy as np
 from sklearn.utils import shuffle
+from scipy.stats import wasserstein_distance
 
 class AnswerF:
 
@@ -58,8 +59,7 @@ class AnswerF:
 
     # get entropy of answers distribution
     def feature_entropy(self):
-        value, counts = np.unique(self.df["answer"], return_counts=True)
-        return entropy(counts, base=None)
+        return entropy(np.array(self.answers_count.values()), base=None)
 
     # get distance between two highest answers and subtract std
     def feature_distance_between_first_and_second_answer(self):
@@ -76,6 +76,26 @@ class AnswerF:
         difference = float(sorted_distribution_by_value[0]) - float(last_value)
         return difference - self.total_std
 
+    # return 1 if the most popular answer was picked more than 50%, otherwise 0
+    def feature_above_50_percent(self):
+        if self.sorted_distribution_by_value[0] / self.num_of_ans >= 0.5:
+            return 1
+        return 0
+
+    # return the wasserstein between the uniform distribution
+    def feature_wasserstein_distance_between_uniform_distribution(self):
+        uniform_distribution = np.full(1, self.num_of_ans, self.avg_for_answer)
+        return wasserstein_distance(self.answers_distribution, uniform_distribution)
+
+    # calculates entropy of the data when eliminating low rate answers (under defined threshold)
+    def feature_entropy_without_low_rate_answers(self):
+        THRESHOLD = 15/100
+        updated_list = []
+        all_answers = self.df['answer'].size
+        for value in self.answers_count.values():
+            if value >= all_answers * THRESHOLD:
+                updated_list.append(value)
+        return entropy(np.array(updated_list), base=None)
 
 # test function
 def main():
@@ -91,7 +111,9 @@ def main():
     # print(f'first and second: {e}')
     # f = a.feature_entropy()
     # print(f'Entropy: {f}')
-    a.build_sub_groups()
+    # a.build_sub_groups()
+    g = a.feature_entropy_without_low_rate_answers()
+    print(f'Entropy without low rate: {g}')
 
 
 if __name__ == "__main__":

@@ -126,7 +126,29 @@ class AnswerSubF:
         difference = float(sorted_by_value[0]) - float(last_value)
         return difference
 
+    # feature: the distribution of the most popular answer in each subgroup
+    def feature_distribution_of_most_popular_answer(self, subs):
+        most_popular_distribution = []
+        for sub_group in subs:
+            answers_distribution = self.build_answers_distribution_array(sub_group)
+            sorted_distribution_by_value = sorted(answers_distribution.values(), reverse=True)
+            most_popular_distribution.append(sorted_distribution_by_value[1] / sum(answers_distribution))
+        return np.var(most_popular_distribution)
 
+    # feature: if the most popular answer is in each subgroup id equal - 1, else- 0
+    def feature_if_most_popular_answer_changed(self, subs):
+        last_value = ""
+        for sub_group in subs:
+            answers_distribution = self.build_answers_distribution_array(sub_group)
+            sorted_distribution_by_value = {k: answers_distribution[k] for k in
+                                            sorted(answers_distribution, key=answers_distribution.get,
+                                                   reverse=True)}
+            the_key = list(sorted_distribution_by_value.keys())[0]
+            if last_value == "":
+                last_value = the_key
+            elif last_value != the_key:
+                return 0
+        return 1
 
 
 # test function
