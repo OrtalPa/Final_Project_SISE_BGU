@@ -10,7 +10,7 @@ NUM_OF_GROUPS = 3
 class AnswerSubF:
 
     def __init__(self, df):
-        self.unique_answers = get_answer_names(df)
+        self.unique_answers = pd.unique(df['Answer'])  # get_answer_names(df)
         self.num_of_ans = self.unique_answers.size
 
     # get number of solvers how chose answer "ans_name"
@@ -54,8 +54,10 @@ class AnswerSubF:
 
     # get entropy of answers distribution
     def feature_entropy(self,df):
-        value, counts = np.unique(df["answer"], return_counts=True)
-        return entropy(counts, base=None)
+        this_dist = []
+        for val in self.build_answers_count_array(df).values():
+            this_dist.append(float(val))
+        return entropy(this_dist, base=None)
 
     # get distance between two highest answers and subtract std
     def feature_distance_between_first_and_second_answer(self,answers_count, std):
@@ -131,8 +133,9 @@ class AnswerSubF:
         for sub_group in subs:
             answers_distribution = self.build_answers_distribution_array(sub_group)
             sorted_distribution_by_value = sorted(answers_distribution.values(), reverse=True)
-            most_popular_distribution.append(sorted_distribution_by_value[1] / sum(answers_distribution))
-        return np.var(most_popular_distribution)
+            total_sum = float(sum(answers_distribution.values()))
+            most_popular_distribution.append(float(sorted_distribution_by_value[0]) / total_sum)
+        return float(np.var(most_popular_distribution))
 
     # feature: if the most popular answer is in each subgroup id equal - 1, else- 0
     def feature_if_most_popular_answer_changed(self, subs):
@@ -156,25 +159,36 @@ def main():
     a = AnswerSubF(cereal_df)
     subs = a.build_sub_groups(cereal_df)
     group_num = 0;
-    for sub in subs:
-        ans_count = a.build_answers_count_array(sub)
-        b = a.get_std(ans_count)
-        print(f'std {group_num}: {b}')
-        c = a.get_var(ans_count)
-        print(f'var {group_num}: {c}')
-        d = a.feature_distance_between_first_and_last_answer(ans_count,b)
-        print(f'first and last {group_num}: {d}')
-        e = a.feature_distance_between_first_and_second_answer(ans_count,b)
-        print(f'first and second {group_num}: {e}')
-        f = a.feature_entropy(sub)
-        print(f'Entropy {group_num}: {f}')
-        group_num += 1
-    g = a.feature_groups_distance_between_highest_to_lowest_entropy(subs)
-    print(f'entropy distance: {g}')
-    h = a.feature_groups_distance_between_highest_to_lowest_std(subs)
-    print(f'std distance: {h}')
-    i = a.feature_groups_distance_between_highest_to_lowest_var(subs)
-    print(f'var distance: {i}')
+    #for sub in subs:
+    #     ans_count = a.build_answers_count_array(sub)
+    #     b = a.get_std(ans_count)
+    #     print(f'std {group_num}: {b}')
+    #     c = a.get_var(ans_count)
+    #     print(f'var {group_num}: {c}')
+    #     d = a.feature_distance_between_first_and_last_answer(ans_count,b)
+    #     print(f'first and last {group_num}: {d}')
+    #     e = a.feature_distance_between_first_and_second_answer(ans_count,b)
+    #     print(f'first and second {group_num}: {e}')
+    #     f = a.feature_entropy(sub)
+    #     print(f'Entropy {group_num}: {f}')
+    #     group_num += 1
+    la = a.feature_groups_distance_between_highest_to_lowest_entropy(subs)
+    print(f'Entropy : {la}')
+    lb = a.feature_groups_distance_between_highest_to_lowest_std(subs)
+    print(f'std : {lb}')
+    lc = a.feature_groups_distance_between_highest_to_lowest_var(subs)
+    print(f'var : {lc}')
+    ld = a.feature_distribution_of_most_popular_answer(subs)
+    print(f'most pop ans dist : {ld}')
+    le = a.feature_if_most_popular_answer_changed(subs)
+    print(f'most pop ans change : {le}')
+    
+    # g = a.feature_groups_distance_between_highest_to_lowest_entropy(subs)
+    # print(f'entropy distance: {g}')
+    # h = a.feature_groups_distance_between_highest_to_lowest_std(subs)
+    # print(f'std distance: {h}')
+    # i = a.feature_groups_distance_between_highest_to_lowest_var(subs)
+    # print(f'var distance: {i}')
 
 
 
