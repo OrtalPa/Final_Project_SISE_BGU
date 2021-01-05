@@ -1,4 +1,6 @@
 import sys
+from collections import defaultdict
+
 import pandas as pd
 import glob
 
@@ -10,14 +12,8 @@ PATH = r'C:\Users\ortal\Documents\FinalProject\data\UpdatedData'
 def arrange_prediction(x):
     if type(x) != str:
         if x > 1:
-            print(x)
+            x = x/100
         return float(x)
-    elif '-' in x:
-        # It is a range of percentage, 0-50% for example
-        split = x.split(sep='-')
-        # Get the average value
-        min_val, max_val = int(split[0]), int(split[1].replace('%', ''))
-        return float(((min_val - max_val)/2)/100)
     else:
         # It is a percentage, 50% for example
         percentage = int(x.replace('%', ''))

@@ -16,7 +16,26 @@ def get_answer_names(data_frame):
 def get_question_dfs():
     list_of_df = []
     for file_path in glob.glob(f"{DATA_PATH}\\*.csv"):
-        list_of_df.append(pd.read_csv(file_path, index_col=0))
+        list_of_df.append(get_df(file_path))
     for file_path in glob.glob(f"{DATA_PATH}\\Article\\*.csv"):
-        list_of_df.append(pd.read_csv(file_path, index_col=0))
+        list_of_df.append(get_df(file_path))
     return list_of_df
+
+
+def get_file_name(file_path):
+    return file_path.split(sep="\\")[-1].split(sep='.')[0]
+
+
+def get_question_dicts():
+    dict_of_df = {}
+    for file_path in glob.glob(f"{DATA_PATH}\\*.csv"):
+        dict_of_df[get_file_name(file_path)] = get_df(file_path)
+    for file_path in glob.glob(f"{DATA_PATH}\\Article\\*.csv"):
+        dict_of_df[get_file_name(file_path)] = get_df(file_path)
+    return dict_of_df
+
+
+def get_df(file_path):
+    df = pd.read_csv(file_path, index_col=0)
+    df['Answer'] = df['Answer'].astype(str)
+    return df
