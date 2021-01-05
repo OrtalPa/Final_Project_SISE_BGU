@@ -88,11 +88,45 @@ class AnswerSubF:
             start = start+jumps
         return sub_groups
 
+    # get the difference between the subgroup with highest entropy and subgroup with lowest entropy
+    def feature_groups_distance_between_highest_to_lowest_entropy(self, subs):
+        entropy_list = []
+        for frame in subs:
+            entropy_list.append(self.feature_entropy(frame))
+        sorted_by_value = sorted(entropy_list, reverse=True)
+        for value in sorted_by_value:
+            if value != 0:
+                last_value = value
+        difference = float(sorted_by_value[0]) - float(last_value)
+        return difference
 
-    def feature_groups_distance_between_first_and_last_highest_distribution(self):
-        subsets = self.build_sub_groups()
-        for frame in subsets:
-            into = 5
+    # get the difference between the subgroup with highest std(standard deviation) and subgroup with lowest std
+    def feature_groups_distance_between_highest_to_lowest_std(self, subs):
+        std_list = []
+        for frame in subs:
+            ans_count = self.build_answers_count_array(frame)
+            std_list.append(self.get_std(ans_count))
+        sorted_by_value = sorted(std_list, reverse=True)
+        for value in sorted_by_value:
+            if value != 0:
+                last_value = value
+        difference = float(sorted_by_value[0]) - float(last_value)
+        return difference
+
+    # get the difference between the subgroup with highest var (variance) and subgroup with lowest var
+    def feature_groups_distance_between_highest_to_lowest_var(self, subs):
+        var_list = []
+        for frame in subs:
+            ans_count = self.build_answers_count_array(frame)
+            var_list.append(self.get_var(ans_count))
+        sorted_by_value = sorted(var_list, reverse=True)
+        for value in sorted_by_value:
+            if value != 0:
+                last_value = value
+        difference = float(sorted_by_value[0]) - float(last_value)
+        return difference
+
+
 
 
 # test function
