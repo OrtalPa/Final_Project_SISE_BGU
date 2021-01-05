@@ -1,9 +1,13 @@
 import pandas as pd
-import math
 from scipy.stats import entropy
 import numpy as np
+from sklearn.utils import shuffle
+
+
+NUM_OF_GROUPS = 3
 
 class AnswerF:
+
     def __init__(self, df):
         # todo self init
         self.df = df
@@ -75,21 +79,41 @@ class AnswerF:
         difference = float(sorted_distribution_by_value[0]) - float(last_value)
         return difference - self.total_std
 
+    # create NUM_OF_GROUPS subsets of the existing data frame, no overlaps, return list of data frames
+    def build_sub_groups(self):
+        shuffled = shuffle(self.df)
+        sub_groups = []
+        start = 0
+        row_num = self.df.shape[0]
+        jumps = int( row_num/ NUM_OF_GROUPS)
+        for i in range (NUM_OF_GROUPS):
+            if (start+jumps > row_num):
+                sub_groups.append(shuffled.iloc[start:row_num])
+                break
+            sub_groups.append(shuffled.iloc[start:start+jumps])
+            start = start+jumps
+        return sub_groups
+
+
+    #def feature_groups_distance_between_first_and_last_highest_distrebution(self):
+
+
 
 # test function
 def main():
     cereal_df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv")
     a = AnswerF(cereal_df)
-    b = a.get_total_std()
-    print(f'std: {b}')
-    c = a.get_total_var()
-    print(f'var: {c}')
-    d = a.feature_distance_between_first_and_last_answer()
-    print(f'first and last: {d}')
-    e = a.feature_distance_between_first_and_second_answer()
-    print(f'first and second: {e}')
-    f = a.feature_entropy()
-    print(f'Entropy: {f}')
+    # b = a.get_total_std()
+    # print(f'std: {b}')
+    # c = a.get_total_var()
+    # print(f'var: {c}')
+    # d = a.feature_distance_between_first_and_last_answer()
+    # print(f'first and last: {d}')
+    # e = a.feature_distance_between_first_and_second_answer()
+    # print(f'first and second: {e}')
+    # f = a.feature_entropy()
+    # print(f'Entropy: {f}')
+    a.build_sub_groups()
 
 
 if __name__ == "__main__":
