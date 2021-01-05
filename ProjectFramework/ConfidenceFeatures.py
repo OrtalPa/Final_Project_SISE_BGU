@@ -29,12 +29,12 @@ class ConfidenceF:
         std = float(np.std(self.df_conf))
         return std
 
-    # get the standard deviation value of all answers confidence
+    # get the highest value of confidence
     def get_highest(self):
         highest = float(sorted(self.df_conf, reverse=True)[0])
         return highest
 
-    # get the standard deviation value of all answers confidence
+    # get the count of confidence with value over 0.90
     def count_highest_above_90(self):
         counter = 0
         highest = sorted(self.df_conf, reverse=True)
@@ -43,6 +43,7 @@ class ConfidenceF:
                 counter += 1
         return float(counter/self.df_conf.size)
 
+    # get the count of confidence with value over 0.95
     def count_highest_above_95(self):
         counter = 0
         highest = sorted(self.df_conf, reverse=True)
@@ -51,6 +52,7 @@ class ConfidenceF:
                 counter += 1
         return float(counter/self.df_conf.size)
 
+    # get the count of confidence with value over 0.98
     def count_highest_above_98(self):
         counter = 0
         highest = sorted(self.df_conf, reverse=True)
@@ -59,10 +61,29 @@ class ConfidenceF:
                 counter += 1
         return float(counter/self.df_conf.size)
 
-    # get the standard deviation value of all answers confidence
+    # get the distance from highest confidence to mean
     def get_distance_highest_from_mean(self):
         highest = float(sorted(self.df_conf, reverse=True)[0])
         return float(highest-self.get_total_mean())
+
+    # get the lowest value of confidence
+    def get_lowest(self):
+        lowest = float(sorted(self.df_conf, reverse=False)[0])
+        return lowest
+
+    # get the count of confidence with value under 0.15
+    def count_lowest_under_15(self):
+        counter = 0
+        lowest = sorted(self.df_conf, reverse=False)
+        for i in lowest:
+            if i <= 0.15:
+                counter += 1
+        return float(counter / self.df_conf.size)
+
+    ######################################## confidence && answers features ##########################################
+
+
+
 
 # test function
 def main():
@@ -84,6 +105,10 @@ def main():
     print(f'count high 95: {h}')
     i = a.count_highest_above_98()
     print(f'count high 98: {i}')
+    j = a.get_lowest()
+    print(f'lowest: {j}')
+    k = a.count_lowest_under_15()
+    print(f'lowest under 15: {k}')
 
 
 if __name__ == "__main__":
