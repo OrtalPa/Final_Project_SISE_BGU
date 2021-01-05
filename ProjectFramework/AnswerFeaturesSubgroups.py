@@ -148,6 +148,13 @@ def main():
         f = a.feature_entropy(sub)
         print(f'Entropy {group_num}: {f}')
         group_num += 1
+    g = a.feature_groups_distance_between_highest_to_lowest_entropy(subs)
+    print(f'entropy distance: {g}')
+    h = a.feature_groups_distance_between_highest_to_lowest_std(subs)
+    print(f'std distance: {h}')
+    i = a.feature_groups_distance_between_highest_to_lowest_var(subs)
+    print(f'var distance: {i}')
+
 
 
 
