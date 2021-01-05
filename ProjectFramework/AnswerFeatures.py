@@ -3,9 +3,6 @@ from scipy.stats import entropy
 import numpy as np
 from sklearn.utils import shuffle
 
-
-NUM_OF_GROUPS = 3
-
 class AnswerF:
 
     def __init__(self, df):
@@ -79,25 +76,6 @@ class AnswerF:
         difference = float(sorted_distribution_by_value[0]) - float(last_value)
         return difference - self.total_std
 
-    # create NUM_OF_GROUPS subsets of the existing data frame, no overlaps, return list of data frames
-    def build_sub_groups(self):
-        shuffled = shuffle(self.df)
-        sub_groups = []
-        start = 0
-        row_num = self.df.shape[0]
-        jumps = int( row_num/ NUM_OF_GROUPS)
-        for i in range (NUM_OF_GROUPS):
-            if (start+jumps > row_num):
-                sub_groups.append(shuffled.iloc[start:row_num])
-                break
-            sub_groups.append(shuffled.iloc[start:start+jumps])
-            start = start+jumps
-        return sub_groups
-
-
-    #def feature_groups_distance_between_first_and_last_highest_distrebution(self):
-
-
 
 # test function
 def main():
@@ -118,10 +96,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    """
-    תתי קבוצות:
-    מרחקים בין התפלגויות בכל תת קבוצה
-    השונות של אחוז הפפולריות של התשובה הפפולרית ביותר
-    האם השתנה התשובה במקום הראשון בין תתי קבוצות
-    """
