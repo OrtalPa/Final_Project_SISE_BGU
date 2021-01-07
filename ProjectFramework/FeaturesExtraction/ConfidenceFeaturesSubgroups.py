@@ -170,8 +170,8 @@ def main():
     print(f'std: {b}')
     c = conf.feature_variance_of_most_popular_answer_confidence_in_subgroups(subgroups)
     print(f'var: {c}')
-    d = conf.feature_variance_of_least_popular_answer_confidence_in_subgroups(subgroups)
-    print(f'mean: {d}')
+    e = conf.feature_variance_of_least_popular_answer_confidence_in_subgroups(subgroups)
+    print(f'mean: {e}')
 
 
 if __name__ == "__main__":
