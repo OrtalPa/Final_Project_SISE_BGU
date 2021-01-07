@@ -2,6 +2,7 @@ import pandas as pd
 from scipy.stats import entropy
 import numpy as np
 from sklearn.utils import shuffle
+from GetProcessedData import get_answer_names
 
 NUM_OF_GROUPS = 3
 
@@ -9,14 +10,12 @@ NUM_OF_GROUPS = 3
 class AnswerSubF:
 
     def __init__(self, df):
-        # todo self init
-        self.df = df
-        self.unique_answers = df['answer'].unique()
-        self.num_of_ans = df['answer'].nunique()
+        self.unique_answers = pd.unique(df['Answer'])  # get_answer_names(df)
+        self.num_of_ans = self.unique_answers.size
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, df, ans_name):
-        return (df['answer'] == ans_name).sum()
+        return (df['Answer'] == ans_name).sum()
 
     # This function builds the array of how many people chose each answer
     def build_answers_distribution_array(self, df):
@@ -56,8 +55,10 @@ class AnswerSubF:
 
     # get entropy of answers distribution
     def feature_entropy(self, df):
-        value, counts = np.unique(df["answer"], return_counts=True)
-        return entropy(counts, base=None)
+        this_dist = []
+        for val in self.build_answers_count_array(df).values():
+            this_dist.append(float(val))
+        return entropy(this_dist, base=None)
 
     # get distance between two highest answers and subtract std
     def feature_distance_between_first_and_second_answer(self, answers_count, std):
@@ -89,10 +90,43 @@ class AnswerSubF:
             start = start + jumps
         return sub_groups
 
-    def feature_groups_distance_between_first_and_last_highest_distribution(self):
-        subsets = self.build_sub_groups()
-        for frame in subsets:
-            into = 5
+    # get the difference between the subgroup with highest entropy and subgroup with lowest entropy
+    def feature_groups_distance_between_highest_to_lowest_entropy(self, subs):
+        entropy_list = []
+        for frame in subs:
+            entropy_list.append(self.feature_entropy(frame))
+        sorted_by_value = sorted(entropy_list, reverse=True)
+        for value in sorted_by_value:
+            if value != 0:
+                last_value = value
+        difference = float(sorted_by_value[0]) - float(last_value)
+        return difference
+
+    # get the difference between the subgroup with highest std(standard deviation) and subgroup with lowest std
+    def feature_groups_distance_between_highest_to_lowest_std(self, subs):
+        std_list = []
+        for frame in subs:
+            ans_count = self.build_answers_count_array(frame)
+            std_list.append(self.get_std(ans_count))
+        sorted_by_value = sorted(std_list, reverse=True)
+        for value in sorted_by_value:
+            if value != 0:
+                last_value = value
+        difference = float(sorted_by_value[0]) - float(last_value)
+        return difference
+
+    # get the difference between the subgroup with highest var (variance) and subgroup with lowest var
+    def feature_groups_distance_between_highest_to_lowest_var(self, subs):
+        var_list = []
+        for frame in subs:
+            ans_count = self.build_answers_count_array(frame)
+            var_list.append(self.get_var(ans_count))
+        sorted_by_value = sorted(var_list, reverse=True)
+        for value in sorted_by_value:
+            if value != 0:
+                last_value = value
+        difference = float(sorted_by_value[0]) - float(last_value)
+        return difference
 
     # feature: the distribution of the most popular answer in each subgroup
     def feature_distribution_of_most_popular_answer(self, subs):
@@ -100,8 +134,9 @@ class AnswerSubF:
         for sub_group in subs:
             answers_distribution = self.build_answers_distribution_array(sub_group)
             sorted_distribution_by_value = sorted(answers_distribution.values(), reverse=True)
-            most_popular_distribution.append(sorted_distribution_by_value[1] / sum(answers_distribution))
-        return np.var(most_popular_distribution)
+            total_sum = float(sum(answers_distribution.values()))
+            most_popular_distribution.append(float(sorted_distribution_by_value[0]) / total_sum)
+        return float(np.var(most_popular_distribution))
 
     # feature: if the most popular answer is in each subgroup id equal - 1, else- 0
     def feature_if_most_popular_answer_changed(self, subs):
@@ -109,7 +144,8 @@ class AnswerSubF:
         for sub_group in subs:
             answers_distribution = self.build_answers_distribution_array(sub_group)
             sorted_distribution_by_value = {k: answers_distribution[k] for k in
-                                            sorted(answers_distribution, key=answers_distribution.get, reverse=True)}
+                                            sorted(answers_distribution, key=answers_distribution.get,
+                                                   reverse=True)}
             the_key = list(sorted_distribution_by_value.keys())[0]
             if last_value == "":
                 last_value = the_key
@@ -124,28 +160,37 @@ def main():
     a = AnswerSubF(cereal_df)
     subs = a.build_sub_groups(cereal_df)
     group_num = 0;
-    for sub in subs:
-        ans_count = a.build_answers_count_array(sub)
-        b = a.get_std(ans_count)
-        print(f'std {group_num}: {b}')
-        c = a.get_var(ans_count)
-        print(f'var {group_num}: {c}')
-        d = a.feature_distance_between_first_and_last_answer(ans_count, b)
-        print(f'first and last {group_num}: {d}')
-        e = a.feature_distance_between_first_and_second_answer(ans_count, b)
-        print(f'first and second {group_num}: {e}')
-        f = a.feature_entropy(sub)
-        print(f'Entropy {group_num}: {f}')
-        group_num += 1
+    # for sub in subs:
+    #     ans_count = a.build_answers_count_array(sub)
+    #     b = a.get_std(ans_count)
+    #     print(f'std {group_num}: {b}')
+    #     c = a.get_var(ans_count)
+    #     print(f'var {group_num}: {c}')
+    #     d = a.feature_distance_between_first_and_last_answer(ans_count,b)
+    #     print(f'first and last {group_num}: {d}')
+    #     e = a.feature_distance_between_first_and_second_answer(ans_count,b)
+    #     print(f'first and second {group_num}: {e}')
+    #     f = a.feature_entropy(sub)
+    #     print(f'Entropy {group_num}: {f}')
+    #     group_num += 1
+    la = a.feature_groups_distance_between_highest_to_lowest_entropy(subs)
+    print(f'Entropy : {la}')
+    lb = a.feature_groups_distance_between_highest_to_lowest_std(subs)
+    print(f'std : {lb}')
+    lc = a.feature_groups_distance_between_highest_to_lowest_var(subs)
+    print(f'var : {lc}')
+    ld = a.feature_distribution_of_most_popular_answer(subs)
+    print(f'most pop ans dist : {ld}')
+    le = a.feature_if_most_popular_answer_changed(subs)
+    print(f'most pop ans change : {le}')
+
+    # g = a.feature_groups_distance_between_highest_to_lowest_entropy(subs)
+    # print(f'entropy distance: {g}')
+    # h = a.feature_groups_distance_between_highest_to_lowest_std(subs)
+    # print(f'std distance: {h}')
+    # i = a.feature_groups_distance_between_highest_to_lowest_var(subs)
+    # print(f'var distance: {i}')
 
 
 if __name__ == "__main__":
     main()
-
-    """
-    תתי קבוצות:
-    מרחקים בין התפלגויות בכל תת קבוצה
-    השונות של אחוז הפפולריות של התשובה הפפולרית ביותר
-    האם השתנה התשובה במקום הראשון בין תתי קבוצות
-    הורדת 10 אחוז באנתרופיה והתפלגות אחידה
-    """

@@ -67,21 +67,32 @@ class ConfidenceF:
     # This function builds the array of how many people chose each answer
     def build_answers_count_array(self):
         dictionary = {}
-        for answer_name in df['answer'].unique():
-            answer_number = self.get_answers_number(answer_name)
-            dictionary[answer_name] = answer_number
+        for answer_name in self.unique_answers:
+            answer_number = (self.df['Answer'] == answer_name).sum()
+            if answer_number != 0:
+                dictionary[answer_name] = answer_number
         return dictionary
 
-    #
+    # This function gets the avg confidence of the most popular answer
     def get_confidence_of_most_popular_answer(self):
         answers_count = self.build_answers_count_array()
-        sorted_distribution_by_value = sorted(answers_count.values(), reverse=True)
-        sorted_distribution_by_value[0]
+        sorted_distribution_by_value = {k: v for k, v in sorted(answers_count.items(), key=lambda item: item[1], reverse=True)}
+        most_popular_answer = next(iter(sorted_distribution_by_value))
+        confidence_list = self.df[self.df['Answer'] == most_popular_answer]['Confidence']
+        return np.mean(confidence_list)
+
+    # This function gets the avg confidence of the least popular answer
+    def get_confidence_of_least_popular_answer(self):
+        answers_count = self.build_answers_count_array()
+        sorted_distribution_by_value = {k: v for k, v in sorted(answers_count.items(), key=lambda item: item[1])}
+        least_popular_answer = next(iter(sorted_distribution_by_value))
+        confidence_list = self.df[self.df['Answer'] == least_popular_answer]['Confidence']
+        return np.mean(confidence_list)
 
 
 # test function
 def main():
-    df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\ProcessedData\\RawData_Apple.csv")
+    df = pd.read_csv("C:\\Users\\Pnina\\PycharmProjects\\Final_Project_SISE_BGU\\ProcessedData\\RawData_Apple.csv")
     a = ConfidenceF(df)
     b = a.get_total_std()
     print(f'std: {b}')
@@ -99,6 +110,11 @@ def main():
     print(f'count high 95: {h}')
     i = a.count_highest_above_98()
     print(f'count high 98: {i}')
+    j = a.get_confidence_of_most_popular_answer()
+    print(f'count most popular: {j}')
+    k = a.get_confidence_of_least_popular_answer()
+    print(f'count least popular: {k}')
+
 
 
 if __name__ == "__main__":
