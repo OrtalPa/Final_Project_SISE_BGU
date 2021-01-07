@@ -20,6 +20,10 @@ class AnswerF:
         self.total_std = self.get_total_std()
         self.total_var = self.get_total_var()
 
+    # return the number of answers for the question
+    def feature_get_num_of_answers(self):
+        return self.df['Answer'].size
+
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, ans_name):
         return (self.df['Answer'] == ans_name).sum()
@@ -54,10 +58,10 @@ class AnswerF:
         var = float(np.var(list(self.answers_count.values())))
         return var
 
-    # get the standard deviation value of all answers distribution
-    def get_total_std(self):
-        std = float(np.std(list(self.answers_count.values())))
-        return std
+    # # get the standard deviation value of all answers distribution
+    # def get_total_std(self):
+    #     std = float(np.std(list(self.answers_count.values())))
+    #     return std
 
     # get entropy of answers distribution
     def feature_entropy(self):
