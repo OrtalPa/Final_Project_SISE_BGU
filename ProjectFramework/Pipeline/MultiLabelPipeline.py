@@ -6,7 +6,7 @@ from AggregationMethods.MajorityRule import majority_answer
 from FeaturesExtraction.AnswerFeatures import AnswerF
 from FeaturesExtraction.AnswerFeaturesSubgroups import AnswerSubF
 from FeaturesExtraction.ConfidenceFeatures import ConfidenceF
-import FeaturesExtraction.ConfidenceFeaturesSubgroups
+from FeaturesExtraction.ConfidenceFeaturesSubgroups import ConfidenceSubF
 
 def run_pipeline():
     data = create_data_df()
@@ -20,6 +20,7 @@ def create_data_df():
         answers = AnswerF(df)
         answers_subs = AnswerSubF(df)
         confidence = ConfidenceF(df)
+        confidence_subs = ConfidenceSubF(df)
         correct_answer = str(df[df['Class'] == 1]['Answer'].iloc[0])
         d = {
             'HAC': 1 if correct_answer == highest_average_confidence(df) else 0,
@@ -51,6 +52,10 @@ def create_data_df():
             'C_under_15': confidence.feature_count_lowest_under_15(),
             'C_distance_mean': confidence.feature_get_distance_highest_from_mean(),
             'C_if_highest_pop': confidence.feature_is_highest_confidence_is_most_popular(),
+            'CS_var_most_pop': confidence_subs.feature_variance_of_most_popular_answer_confidence_in_subgroups(),
+            'CS_var_least_pop': confidence_subs.feature_variance_of_least_popular_answer_confidence_in_subgroups(),
+            'CS_mean_high_low_diff': confidence_subs.feature_groups_distance_between_highest_to_lowest_confidence_mean(),
+            'CS_var_high_low_diff': confidence_subs.feature_groups_distance_between_highest_to_lowest_confidence_var(),
 
         }
         all_data.append(d, ignore_index=True)
