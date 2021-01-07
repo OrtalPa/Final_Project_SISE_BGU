@@ -12,6 +12,7 @@ class ConfidenceSubF:
     def __init__(self, df):
         self.unique_answers = get_answer_names(df)
         self.num_of_ans = self.unique_answers.size
+        self.subs = self.build_sub_groups(df)
 
     # get the mean value of all answers confidence
     def get_total_mean(self, df_conf):
@@ -106,9 +107,9 @@ class ConfidenceSubF:
     ######################################## Subgroups Features ##########################################
 
     # get the difference between the subgroup with highest confidence mean and subgroup with lowest
-    def feature_groups_distance_between_highest_to_lowest_confidence_mean(self, subs):
+    def feature_groups_distance_between_highest_to_lowest_confidence_mean(self):
         confidence_list = []
-        for frame in subs:
+        for frame in self.subs:
             confidence_list.append(self.get_total_mean(frame['Confidence']))
         sorted_by_value = sorted(confidence_list, reverse=True)
         for value in sorted_by_value:
@@ -118,9 +119,9 @@ class ConfidenceSubF:
         return difference
 
     # get the difference between the subgroup with highest confidence var and subgroup with lowest
-    def feature_groups_distance_between_highest_to_lowest_confidence_var(self, subs):
+    def feature_groups_distance_between_highest_to_lowest_confidence_var(self):
         confidence_list = []
-        for frame in subs:
+        for frame in self.subs:
             confidence_list.append(self.get_total_var(frame['Confidence']))
         sorted_by_value = sorted(confidence_list, reverse=True)
         for value in sorted_by_value:
@@ -130,9 +131,9 @@ class ConfidenceSubF:
         return difference
 
     # feature: returns the variance of the mean of the most popular answer's confidence
-    def feature_variance_of_most_popular_answer_confidence_in_subgroups(self, subs):
+    def feature_variance_of_most_popular_answer_confidence_in_subgroups(self):
         confidence_array = []
-        for sub_group in subs:
+        for sub_group in self.subs:
             answers_distribution = self.build_answers_distribution_array(sub_group)
             sorted_distribution_by_value = {k: answers_distribution[k] for k in
                                             sorted(answers_distribution, key=answers_distribution.get,
@@ -144,9 +145,9 @@ class ConfidenceSubF:
         return self.get_total_var(confidence_array)
 
     # feature: returns the variance of the mean of the least popular answer's confidence
-    def feature_variance_of_least_popular_answer_confidence_in_subgroups(self, subs):
+    def feature_variance_of_least_popular_answer_confidence_in_subgroups(self):
         confidence_array = []
-        for sub_group in subs:
+        for sub_group in self.subs:
             answers_distribution = self.build_answers_distribution_array(sub_group)
             sorted_distribution_by_value = {k: answers_distribution[k] for k in
                                             sorted(answers_distribution, key=answers_distribution.get,
