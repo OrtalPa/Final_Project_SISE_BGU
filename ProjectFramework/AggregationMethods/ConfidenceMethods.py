@@ -16,7 +16,7 @@ def highest_average_confidence(df):
         traceback.print_tb(e.__traceback__)
 
 
-from GetProcessedData import get_question_dfs
-
-dfs = get_question_dfs()
-print(highest_average_confidence(dfs[11]))
+# from GetProcessedData import get_question_dfs
+#
+# dfs = get_question_dfs()
+# print(highest_average_confidence(dfs[11]))

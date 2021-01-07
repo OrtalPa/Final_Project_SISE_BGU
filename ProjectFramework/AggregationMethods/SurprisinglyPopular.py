@@ -26,7 +26,7 @@ def surprisingly_pop_answer(df):
         traceback.print_tb(e.__traceback__)
 
 
-from GetProcessedData import get_question_dfs
-
-dfs = get_question_dfs()
-print(surprisingly_pop_answer(dfs[0]))
+# from GetProcessedData import get_question_dfs
+#
+# dfs = get_question_dfs()
+# print(surprisingly_pop_answer(dfs[0]))
