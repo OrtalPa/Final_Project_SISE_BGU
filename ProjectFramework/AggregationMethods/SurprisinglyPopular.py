@@ -24,7 +24,6 @@ def surprisingly_pop_answer(df):
         # Get the votes for each answer
         # answer_to_sum[answer] = len(df[df['Answer'] == answer])
     except Exception as e:
-        print(f"Exception in {file_name}")
         print(e)
         traceback.print_tb(e.__traceback__)
 
