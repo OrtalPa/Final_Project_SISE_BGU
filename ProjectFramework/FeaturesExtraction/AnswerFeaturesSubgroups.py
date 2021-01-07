@@ -129,7 +129,7 @@ class AnswerSubF:
         difference = float(sorted_by_value[0]) - float(last_value)
         return difference
 
-    # feature: the distribution of the most popular answer in each subgroup
+    # feature: the variance distribution of the most popular answer in each subgroup
     def feature_distribution_of_most_popular_answer(self):
         most_popular_distribution = []
         for sub_group in self.subs:
