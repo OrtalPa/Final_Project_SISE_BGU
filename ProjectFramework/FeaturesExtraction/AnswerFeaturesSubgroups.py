@@ -95,7 +95,7 @@ class AnswerSubF:
     def feature_groups_distance_between_highest_to_lowest_entropy(self):
         entropy_list = []
         for frame in self.subs:
-            entropy_list.append(self.feature_entropy(frame))
+            entropy_list.append(self.entropy(frame))
         sorted_by_value = sorted(entropy_list, reverse=True)
         for value in sorted_by_value:
             if value != 0:
