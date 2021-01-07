@@ -156,7 +156,7 @@ class AnswerSubF:
 
 # test function
 def main():
-    cereal_df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv")
+    cereal_df = pd.read_csv("C:\\Users\\Pnina\\PycharmProjects\\Final_Project_SISE_BGU\\ProcessedData\\RawData_Apple.csv")
     a = AnswerSubF(cereal_df)
     subs = a.build_sub_groups(cereal_df)
     group_num = 0;
