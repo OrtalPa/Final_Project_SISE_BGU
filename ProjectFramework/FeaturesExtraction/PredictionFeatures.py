@@ -117,7 +117,29 @@ class PredictionsF:
         for answer in self.unique_answers:
             test_df = self.df[self.df['Answer'] == answer]
             for index, row in test_df.iterrows():
-                if row[answer] > votes[answer]:
+                if row[answer] > votes[answer] and votes[answer] < 0.4:
+                    counter += 1
+        return counter
+
+    # get the count of low prediction and high votes
+    def feature_count_prediction_lower_then_votes(self):
+        votes = self.build_answers_distribution_array()
+        counter = 0
+        for answer in self.unique_answers:
+            test_df = self.df[self.df['Answer'] == answer]
+            for index, row in test_df.iterrows():
+                if row[answer] < votes[answer] and votes[answer] > 0.5:
+                    counter += 1
+        return counter
+
+    # get the count of prediction equal votes
+    def feature_count_prediction_equal_to_votes(self):
+        votes = self.build_answers_distribution_array()
+        counter = 0
+        for answer in self.unique_answers:
+            test_df = self.df[self.df['Answer'] == answer]
+            for index, row in test_df.iterrows():
+                if row[answer] - 0.05 < votes[answer] < row[answer] + 0.05:
                     counter += 1
         return counter
 
