@@ -94,18 +94,20 @@ class PredictionsF:
     def feature_count_high_confidence_low_prediction(self):
         counter = 0
         for answer in self.unique_answers:
-            df_for_ans = self.df[self.df['Answer'] == answer]
-            ans_list = df_for_ans.apply(lambda row: 1 if row['Confidence'] > 0.8 and row[answer] < 0.2 else 0)
-            counter = sum(ans_list)
+            test_df = self.df[self.df['Answer'] == answer]
+            for index,row in test_df.iterrows():
+                if row['Confidence'] > 0.8 and row[answer] < 0.2:
+                    counter += 1
         return counter
 
     # get the count of high prediction and low confidence
-    def feature_count_high_confidence_low_prediction(self):
+    def feature_count_low_confidence_high_prediction(self):
         counter = 0
         for answer in self.unique_answers:
-            df_for_ans = self.df.loc[self.df['Answer'] == answer, 'Confidence', answer]
-            ans_list = df_for_ans.apply(lambda row: 1 if row['Confidence'] < 0.5 and row[answer] > 0.5 else 0)
-            counter = sum(ans_list)
+            test_df = self.df[self.df['Answer'] == answer]
+            for index, row in test_df.iterrows():
+                if row['Confidence'] < 0.5 and row[answer] > 0.5:
+                    counter += 1
         return counter
 
     # get the count of high prediction and low votes
@@ -113,35 +115,37 @@ class PredictionsF:
         votes = self.build_answers_distribution_array()
         counter = 0
         for answer in self.unique_answers:
-            df_for_ans = self.df.loc[self.df['Answer'] == answer, 'Confidence', answer]
-            ans_list = df_for_ans.apply(lambda row: 1 if row['Confidence'] < 0.5 and row[answer] > 0.5 else 0)
-            counter = sum(ans_list)
+            test_df = self.df[self.df['Answer'] == answer]
+            for index, row in test_df.iterrows():
+                if row[answer] > votes[answer]:
+                    counter += 1
         return counter
+
 
 # test function
 def main():
-    cereal_df = pd.read_csv("C:\\Users\\Pnina\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv", index_col=0)
+    cereal_df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv", index_col=0)
     a = PredictionsF(cereal_df)
     b = a.feature_get_highest_mean_prediction_for_answer()
-    print(f'std: {b}')
+    print(f'high mean: {b}')
     c = a.feature_get_highest_var_prediction_for_answer()
-    print(f'var: {c}')
+    print(f'high var: {c}')
     d = a.feature_get_highest_std_prediction_for_answer()
-    print(f'first and last: {d}')
+    print(f'high std: {d}')
     e = a.feature_get_lowest_mean_prediction_for_answer()
-    print(f'first and second: {e}')
+    print(f'low mean: {e}')
     f = a.feature_get_lowest_var_prediction_for_answer()
-    print(f'Entropy: {f}')
-    g = a.feature_get_lowest_mean_prediction_for_answer()
-    print(f'Entropy: {g}')
-    h = a.feature_get_lowest_var_prediction_for_answer()
-    print(f'Entropy: {h}')
-    i = a.feature_get_lowest_std_prediction_for_answer()
-    print(f'Entropy: {i}')
-    j = a.feature_count_highest_above_80()
-    print(f'Entropy: {j}')
-    k = a.feature_count_high_confidence_low_prediction()
-    print(f'Entropy: {k}')
+    print(f'low var: {f}')
+    g = a.feature_get_lowest_std_prediction_for_answer()
+    print(f'low std: {g}')
+    h = a.feature_count_highest_above_80()
+    print(f'above_80: {h}')
+    i = a.feature_count_high_confidence_low_prediction()
+    print(f'this is what i need : {i}')
+    j = a.feature_count_low_confidence_high_prediction()
+    print(f'this is what i need : {j}')
+    k = a.feature_count_prediction_higher_then_votes()
+    print(f'this is what i need : {k}')
 
 
 if __name__ == "__main__":
