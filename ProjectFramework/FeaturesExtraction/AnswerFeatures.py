@@ -10,7 +10,7 @@ class AnswerF:
     def __init__(self, df):
         # todo self init
         self.df = df
-        self.unique_answers = pd.unique(df['Answer']) #get_answer_names(df)
+        self.unique_answers = get_answer_names(df)
         self.num_of_ans = self.unique_answers.size
         self.avg_for_answer = df['Answer'].size / self.num_of_ans
         self.answers_distribution = self.build_answers_distribution_array()
@@ -19,6 +19,10 @@ class AnswerF:
 
         self.total_std = self.get_total_std()
         self.total_var = self.get_total_var()
+
+    # return the number of answers for the question
+    def feature_get_num_of_answers(self):
+        return self.df['Answer'].size
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, ans_name):
@@ -61,7 +65,10 @@ class AnswerF:
 
     # get entropy of answers distribution
     def feature_entropy(self):
-        return float(entropy(np.array(self.answers_count.values()), base=None))
+        this_dist = []
+        for val in self.answers_count.values():
+            this_dist.append(float(val))
+        return entropy(this_dist, base=None)
 
     # get distance between two highest answers and subtract std
     def feature_distance_between_first_and_second_answer(self):
@@ -104,7 +111,7 @@ class AnswerF:
 
 # test function
 def main():
-    cereal_df = pd.read_csv("C:\\Users\\school & work\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv")
+    cereal_df = pd.read_csv("C:\\Users\\Pnina\\PycharmProjects\\Final_Project_SISE_BGU\\test.csv")
     a = AnswerF(cereal_df)
     # b = a.get_total_std()
     # print(f'std: {b}')
@@ -114,8 +121,8 @@ def main():
     # print(f'first and last: {d}')
     # e = a.feature_distance_between_first_and_second_answer()
     # print(f'first and second: {e}')
-    # f = a.feature_entropy()
-    # print(f'Entropy: {f}')
+    f = a.feature_entropy()
+    print(f'Entropy: {f}')
     # a.build_sub_groups()
     g = a.feature_entropy_without_low_rate_answers()
     print(f'Entropy without low rate: {g}')

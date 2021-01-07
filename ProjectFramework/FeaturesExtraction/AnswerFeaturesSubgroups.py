@@ -12,6 +12,7 @@ class AnswerSubF:
     def __init__(self, df):
         self.unique_answers = pd.unique(df['Answer'])  # get_answer_names(df)
         self.num_of_ans = self.unique_answers.size
+        self.subs = self.build_sub_groups(df)
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, df, ans_name):
@@ -54,20 +55,20 @@ class AnswerSubF:
         return std
 
     # get entropy of answers distribution
-    def feature_entropy(self, df):
+    def entropy(self, df):
         this_dist = []
         for val in self.build_answers_count_array(df).values():
             this_dist.append(float(val))
         return entropy(this_dist, base=None)
 
     # get distance between two highest answers and subtract std
-    def feature_distance_between_first_and_second_answer(self, answers_count, std):
+    def distance_between_first_and_second_answer(self, answers_count, std):
         sorted_distribution_by_value = sorted(answers_count.values(), reverse=True)
         difference = float(sorted_distribution_by_value[0]) - float(sorted_distribution_by_value[1])
         return difference - std
 
     # calculates the distance between first and last answer someone picked, divided by the std
-    def feature_distance_between_first_and_last_answer(self, answers_count, std):
+    def distance_between_first_and_last_answer(self, answers_count, std):
         sorted_distribution_by_value = sorted(answers_count.values(), reverse=True)
         for value in sorted_distribution_by_value:
             if value != 0:
@@ -91,10 +92,10 @@ class AnswerSubF:
         return sub_groups
 
     # get the difference between the subgroup with highest entropy and subgroup with lowest entropy
-    def feature_groups_distance_between_highest_to_lowest_entropy(self, subs):
+    def feature_groups_distance_between_highest_to_lowest_entropy(self):
         entropy_list = []
-        for frame in subs:
-            entropy_list.append(self.feature_entropy(frame))
+        for frame in self.subs:
+            entropy_list.append(self.entropy(frame))
         sorted_by_value = sorted(entropy_list, reverse=True)
         for value in sorted_by_value:
             if value != 0:
@@ -103,9 +104,9 @@ class AnswerSubF:
         return difference
 
     # get the difference between the subgroup with highest std(standard deviation) and subgroup with lowest std
-    def feature_groups_distance_between_highest_to_lowest_std(self, subs):
+    def feature_groups_distance_between_highest_to_lowest_std(self):
         std_list = []
-        for frame in subs:
+        for frame in self.subs:
             ans_count = self.build_answers_count_array(frame)
             std_list.append(self.get_std(ans_count))
         sorted_by_value = sorted(std_list, reverse=True)
@@ -116,9 +117,9 @@ class AnswerSubF:
         return difference
 
     # get the difference between the subgroup with highest var (variance) and subgroup with lowest var
-    def feature_groups_distance_between_highest_to_lowest_var(self, subs):
+    def feature_groups_distance_between_highest_to_lowest_var(self):
         var_list = []
-        for frame in subs:
+        for frame in self.subs:
             ans_count = self.build_answers_count_array(frame)
             var_list.append(self.get_var(ans_count))
         sorted_by_value = sorted(var_list, reverse=True)
@@ -129,9 +130,9 @@ class AnswerSubF:
         return difference
 
     # feature: the distribution of the most popular answer in each subgroup
-    def feature_distribution_of_most_popular_answer(self, subs):
+    def feature_distribution_of_most_popular_answer(self):
         most_popular_distribution = []
-        for sub_group in subs:
+        for sub_group in self.subs:
             answers_distribution = self.build_answers_distribution_array(sub_group)
             sorted_distribution_by_value = sorted(answers_distribution.values(), reverse=True)
             total_sum = float(sum(answers_distribution.values()))
@@ -139,9 +140,9 @@ class AnswerSubF:
         return float(np.var(most_popular_distribution))
 
     # feature: if the most popular answer is in each subgroup id equal - 1, else- 0
-    def feature_if_most_popular_answer_changed(self, subs):
+    def feature_if_most_popular_answer_changed(self):
         last_value = ""
-        for sub_group in subs:
+        for sub_group in self.subs:
             answers_distribution = self.build_answers_distribution_array(sub_group)
             sorted_distribution_by_value = {k: answers_distribution[k] for k in
                                             sorted(answers_distribution, key=answers_distribution.get,
