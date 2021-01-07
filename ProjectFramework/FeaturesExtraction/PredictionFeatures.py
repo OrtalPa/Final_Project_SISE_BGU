@@ -14,6 +14,18 @@ class PredictionsF:
         self.df_pred = df[[self.unique_answers]]
         self.num_of_ans = self.unique_answers.size
 
+    # get number of solvers how chose answer "ans_name"
+    def get_answers_number(self, ans_name):
+        return (self.df['Answer'] == ans_name).sum()
+
+    # This function builds the array of how many people chose each answer
+    def build_answers_distribution_array(self):
+        dictionary = {}
+        for answer_name in self.unique_answers:
+            answer_number = self.get_answers_number(answer_name) / self.num_of_ans
+            dictionary[answer_name] = answer_number
+        return dictionary
+
     # get the mean value of each answers predictions
     def get_mean_list(self):
         mean_list = []
@@ -77,7 +89,7 @@ class PredictionsF:
 
     ######################################## prediction && confidence features ##########################################
 
-    # get the count of low prediction with value under 0.30 and confidence over 0.90
+    # get the count of low prediction and high confidence
     def feature_count_high_confidence_low_prediction(self):
         counter = 0
         for answer in self.unique_answers:
@@ -86,6 +98,24 @@ class PredictionsF:
             counter = sum(ans_list)
         return counter
 
+    # get the count of high prediction and low confidence
+    def feature_count_high_confidence_low_prediction(self):
+        counter = 0
+        for answer in self.unique_answers:
+            df_for_ans = self.df.loc[self.df['Answer'] == answer, 'Confidence', answer]
+            ans_list = df_for_ans.apply(lambda row: 1 if row['Confidence'] < 0.5 and row[answer] > 0.5 else 0)
+            counter = sum(ans_list)
+        return counter
+
+    # get the count of high prediction and low votes
+    def feature_count_prediction_higher_then_votes(self):
+        votes = self.build_answers_distribution_array()
+        counter = 0
+        for answer in self.unique_answers:
+            df_for_ans = self.df.loc[self.df['Answer'] == answer, 'Confidence', answer]
+            ans_list = df_for_ans.apply(lambda row: 1 if row['Confidence'] < 0.5 and row[answer] > 0.5 else 0)
+            counter = sum(ans_list)
+        return counter
 
 # test function
 def main():
