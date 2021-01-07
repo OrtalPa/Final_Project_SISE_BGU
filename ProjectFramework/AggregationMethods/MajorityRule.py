@@ -4,7 +4,7 @@ import traceback
 def majority_answer(df):
     try:
         mode = df['Answer'].mode()
-        return "" if len(mode) > 1 else mode.values[0]
+        return None if len(mode) != 1 else mode.values[0]
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
