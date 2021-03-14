@@ -10,18 +10,18 @@ from sklearn.metrics import accuracy_score
 from sklearn.neural_network import MLPClassifier
 from skmultilearn.problem_transform import ClassifierChain
 from sklearn.model_selection import train_test_split
-from GetProcessedData import get_question_dfs
-from AggregationMethods.ConfidenceMethods import highest_average_confidence
+from GetProcessedData import get_question_dfs, get_question_dicts
+from AggregationMethods.ConfidenceMethods import *
 from AggregationMethods.SurprisinglyPopular import surprisingly_pop_answer
 from AggregationMethods.MajorityRule import majority_answer
 from FeaturesExtraction.AnswerFeatures import AnswerF
 from FeaturesExtraction.AnswerFeaturesSubgroups import AnswerSubF
 from FeaturesExtraction.ConfidenceFeatures import ConfidenceF
-from FeaturesExtraction.ConfidenceFeaturesSubgroups import ConfidenceSubF
+from FeaturesExtraction.ConfidenceFeaturesSubgroups import *
 from FeaturesExtraction.PredictionFeatures import PredictionsF
 
-# Highest average confidence, surprisingly popular, majority rule
-METHOD_NAMES = ['HAC', 'SP', 'MR']
+# Highest average confidence, surprisingly popular, majority rule, weighted confidence
+METHOD_NAMES = ['HAC', 'SP', 'MR', 'WC']
 path = Path(os.path.abspath(__file__))
 RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
 
@@ -29,19 +29,26 @@ RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
 def run_pipeline(data):
     feature_df = data.drop(METHOD_NAMES, axis=1, errors='ignore')
     X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[METHOD_NAMES], test_size=0.2, random_state=0)
-    results = classifier_chain_rf(X_train, X_test, y_train, y_test)
+    classifier = classifier_chain_rf(X_train, X_test, y_train, y_test)
+    results = get_model_results(classifier, X_test, y_test)
     print_model(results)
 
 
-def mlp_cls(X_train, X_test, y_train, y_test):
-    clf = MLPClassifier(random_state=1, max_iter=300).fit(X_train, y_train)
-    clf.predict_proba(X_test[:1])
+def get_model_results(clf, X_test, y_test):
     prediction = clf.predict(X_test)
     r_square = clf.score(X_test, y_test)
     accuracy = accuracy_score(y_test, prediction)
     rounded_pred = np.around(prediction)
     metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
-    return ["MLPClassifier", prediction, r_square, accuracy, rounded_pred, metrics_cls_report]
+    return [prediction, r_square, accuracy, rounded_pred, metrics_cls_report]
+
+
+# multi layer perceptron classifier
+def mlp_cls(X_train, X_test, y_train, y_test):
+    clf = MLPClassifier(random_state=1, max_iter=300).fit(X_train, y_train)
+    # clf.predict_proba(X_test[:1])
+    clf.fit(X_test)
+    return clf
 
 
 def classifier_chain_rf(X_train, X_test, y_train, y_test):
@@ -52,26 +59,14 @@ def classifier_chain_rf(X_train, X_test, y_train, y_test):
     )
     # train
     clf.fit(X_train, y_train)
-    # predict
-    prediction = clf.predict(X_test)
-    r_square = clf.score(X_test, y_test)
-    accuracy = accuracy_score(y_test, prediction)
-    rounded_pred = np.around(prediction)
-    metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
-    return ["ChainRF", prediction, r_square, accuracy, rounded_pred, metrics_cls_report]
+    return clf
 
 
 def random_forest_cls(X_train, X_test, y_train, y_test):
     clf = RandomForestClassifier(random_state=0)
     # train
     clf.fit(X_train, y_train)
-    # predict
-    prediction = clf.predict(X_test)
-    r_square = clf.score(X_test, y_test)
-    accuracy = accuracy_score(y_test, prediction)
-    rounded_pred = np.around(prediction)
-    metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
-    return ["RandomForest", prediction, r_square, accuracy, rounded_pred, metrics_cls_report]
+    return clf
 
 
 def print_model(model_results):
@@ -99,11 +94,13 @@ def print_model(model_results):
 def create_data_df():
     # gets the questions data from the files
     # each question has a df of its own, each row is an answer of a person
-    question_dfs = get_question_dfs()
+    ## question_dfs = get_question_dfs()
+    question_dict_df = get_question_dicts()
     # will contain a row for each question at the end
     all_data = pd.DataFrame()
-    for df in question_dfs:
+    for df_name in question_dict_df:
         try:
+            df = question_dict_df[df_name]
             # create the classes that create the features
             answers = AnswerF(df)
             answers_subs = AnswerSubF(df)
@@ -115,6 +112,7 @@ def create_data_df():
                 'HAC': 1 if correct_answer == highest_average_confidence(df) else 0,
                 'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
                 'MR': 1 if correct_answer == majority_answer(df) else 0,
+                'WC': 1 if correct_answer == weighted_confidence(df) else 0,
                 'A_num': answers.feature_get_num_of_answers(),
                 'A_var': answers.get_total_var(),
                 'A_entropy': answers.feature_entropy(),
@@ -160,6 +158,7 @@ def create_data_df():
             }
             all_data = all_data.append(d, ignore_index=True)
         except Exception as e:
+            print("error in "+df_name)
             print(e)
             traceback.print_tb(e.__traceback__)
             continue
