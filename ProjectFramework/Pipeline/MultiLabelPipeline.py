@@ -10,15 +10,15 @@ from sklearn.metrics import accuracy_score
 from sklearn.neural_network import MLPClassifier
 from skmultilearn.problem_transform import ClassifierChain
 from sklearn.model_selection import train_test_split
-from GetProcessedData import get_question_dfs
-from AggregationMethods.ConfidenceMethods import highest_average_confidence
-from AggregationMethods.SurprisinglyPopular import surprisingly_pop_answer
-from AggregationMethods.MajorityRule import majority_answer
-from FeaturesExtraction.AnswerFeatures import AnswerF
-from FeaturesExtraction.AnswerFeaturesSubgroups import AnswerSubF
-from FeaturesExtraction.ConfidenceFeatures import ConfidenceF
-from FeaturesExtraction.ConfidenceFeaturesSubgroups import ConfidenceSubF
-from FeaturesExtraction.PredictionFeatures import PredictionsF
+from ProjectFramework.GetProcessedData import get_question_dfs
+from ProjectFramework.AggregationMethods.ConfidenceMethods import highest_average_confidence
+from ProjectFramework.AggregationMethods.SurprisinglyPopular import surprisingly_pop_answer
+from ProjectFramework.AggregationMethods.MajorityRule import majority_answer
+from ProjectFramework.FeaturesExtraction.AnswerFeatures import AnswerF
+from ProjectFramework.FeaturesExtraction.AnswerFeaturesSubgroups import AnswerSubF
+from ProjectFramework.FeaturesExtraction.ConfidenceFeatures import ConfidenceF
+from ProjectFramework.FeaturesExtraction.ConfidenceFeaturesSubgroups import ConfidenceSubF
+from ProjectFramework.FeaturesExtraction.PredictionFeatures import PredictionsF
 
 
 METHOD_NAMES = ['HAC', 'SP', 'MR']
