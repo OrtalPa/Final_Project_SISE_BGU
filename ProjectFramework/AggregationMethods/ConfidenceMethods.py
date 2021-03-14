@@ -20,3 +20,15 @@ def highest_average_confidence(df):
 #
 # dfs = get_question_dfs()
 # print(highest_average_confidence(dfs[11]))
+
+
+def weighted_confidence(df):
+    try:
+        answers = get_answer_names(df)
+        answer_to_conf = dict()
+        for answer in answers:
+            answer_to_conf[answer] = df[df.Answer == answer]['Confidence'].sum()
+        return max(answer_to_conf, key=answer_to_conf.get)
+    except Exception as e:
+        print(e)
+        traceback.print_tb(e.__traceback__)
