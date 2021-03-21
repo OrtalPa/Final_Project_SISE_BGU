@@ -1,10 +1,8 @@
 import os
-import traceback
 from pathlib import Path
 from sklearn import metrics
-import numpy as np
+import operator
 
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.neural_network import MLPClassifier
@@ -21,26 +19,54 @@ from FeaturesExtraction.ConfidenceFeaturesSubgroups import *
 from FeaturesExtraction.PredictionFeatures import PredictionsF
 
 # Highest average confidence, surprisingly popular, majority rule, weighted confidence
-METHOD_NAMES = ['HAC', 'SP', 'MR', 'WC']
+METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'SP', 3: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
 RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
 
 
 def run_pipeline(data):
-    feature_df = data.drop(METHOD_NAMES, axis=1, errors='ignore')
-    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[METHOD_NAMES], test_size=0.2, random_state=0)
+    feature_df = data.drop(METHOD_NAMES.values(), axis=1, errors='ignore')
+    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[METHOD_NAMES.values()], test_size=0.2, random_state=0)
     classifier = classifier_chain_rf(X_train, X_test, y_train, y_test)
     results = get_model_results(classifier, X_test, y_test)
-    print_model(results)
+    acc = get_accuracy(results, y_test)
+    print(acc)
+
+
+def get_accuracy(results, y_test):
+    count_true = 0
+    for res in results.items():
+        q_index = res[0]  # question index
+        selected_method = str(res[1][0])  # selected method
+        real_result = y_test.iloc[y_test.index == q_index][selected_method]
+        real_result = real_result[q_index]
+        count_true += real_result
+    return str(count_true / len(y_test))
 
 
 def get_model_results(clf, X_test, y_test):
-    prediction = clf.predict(X_test)
-    r_square = clf.score(X_test, y_test)
-    accuracy = accuracy_score(y_test, prediction)
-    rounded_pred = np.around(prediction)
-    metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
-    return [prediction, r_square, accuracy, rounded_pred, metrics_cls_report]
+    prediction_prob = clf.predict_proba(X_test)
+
+    # maps the question index to an array of the methods suitable to solve it
+    prediction_by_question_index = {}
+    selected_method_for_q = {}
+    i = 0
+    for p in prediction_prob:
+        # p.indices is the array of predicted methods
+        question_index = X_test.index[i]
+        answered_by = {}
+        for method in p.indices:
+            answered_by[METHOD_NAMES[method]] = p.data[method]
+        prediction_by_question_index[question_index] = answered_by
+        selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
+        i += 1
+
+    # other methods to test the model
+    # r_square = clf.score(X_test, y_test)
+    # accuracy = accuracy_score(y_test, prediction)
+    # rounded_pred = np.around(prediction)
+    # metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
+    return selected_method_for_q
 
 
 # multi layer perceptron classifier
@@ -52,10 +78,9 @@ def mlp_cls(X_train, X_test, y_train, y_test):
 
 
 def classifier_chain_rf(X_train, X_test, y_train, y_test):
-    # initialize LabelPowerset multi-label classifier with a RandomForest
+    # initialize ClassifierChain multi-label classifier with a RandomForest
     clf = ClassifierChain(
         classifier=RandomForestClassifier(n_estimators=100),
-        require_dense=[False, True]
     )
     # train
     clf.fit(X_train, y_train)
@@ -108,11 +133,16 @@ def create_data_df():
             confidence_subs = ConfidenceSubF(df)
             predictions = PredictionsF(df)
             correct_answer = str(df[df['Class'] == 1]['Answer'].iloc[0])
+            res_from_agg_methods = ""
+            res_from_agg_methods += 'HAC' if correct_answer == highest_average_confidence(df) else ''
+            res_from_agg_methods += 'SP' if correct_answer == surprisingly_pop_answer(df) else ''
+            res_from_agg_methods += 'MR' if correct_answer == majority_answer(df) else ''
+            res_from_agg_methods += 'WC' if correct_answer == weighted_confidence(df) else ''
             d = {
-                'HAC': 1 if correct_answer == highest_average_confidence(df) else 0,
-                'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
-                'MR': 1 if correct_answer == majority_answer(df) else 0,
-                'WC': 1 if correct_answer == weighted_confidence(df) else 0,
+                'HAC': 'HAC' if correct_answer == highest_average_confidence(df) else 'NOT_HAC',
+                'MR': 'MR' if correct_answer == majority_answer(df) else 'NOT_MR',
+                'SP': 'SP' if correct_answer == surprisingly_pop_answer(df) else 'NOT_SP',
+                'WC': 'WC' if correct_answer == weighted_confidence(df) else 'NOT_WC',
                 'A_num': answers.feature_get_num_of_answers(),
                 'A_var': answers.get_total_var(),
                 'A_entropy': answers.feature_entropy(),
@@ -167,7 +197,7 @@ def create_data_df():
 
 
 # creates a csv file containing a row for each question with features
-# result = create_data_df()
+#result = create_data_df()
 # read the result file once it's created
 result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
 run_pipeline(result)
