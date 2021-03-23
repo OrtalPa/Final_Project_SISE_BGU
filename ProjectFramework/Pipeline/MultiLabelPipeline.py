@@ -4,8 +4,6 @@ from sklearn import metrics
 import operator
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.neural_network import MLPClassifier
 from skmultilearn.problem_transform import ClassifierChain
 from sklearn.model_selection import train_test_split
 from GetProcessedData import get_question_dfs, get_question_dicts
@@ -61,20 +59,15 @@ def get_model_results(clf, X_test, y_test):
         selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
         i += 1
 
+    print(prediction_by_question_index)
+    print(selected_method_for_q)
+
     # other methods to test the model
     # r_square = clf.score(X_test, y_test)
     # accuracy = accuracy_score(y_test, prediction)
     # rounded_pred = np.around(prediction)
     # metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
     return selected_method_for_q
-
-
-# multi layer perceptron classifier
-def mlp_cls(X_train, X_test, y_train, y_test):
-    clf = MLPClassifier(random_state=1, max_iter=300).fit(X_train, y_train)
-    # clf.predict_proba(X_test[:1])
-    clf.fit(X_test)
-    return clf
 
 
 def classifier_chain_rf(X_train, X_test, y_train, y_test):
@@ -197,7 +190,7 @@ def create_data_df():
 
 
 # creates a csv file containing a row for each question with features
-#result = create_data_df()
+# result = create_data_df()
 # read the result file once it's created
 result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
 run_pipeline(result)
