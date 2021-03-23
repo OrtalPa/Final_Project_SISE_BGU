@@ -50,17 +50,20 @@ def get_model_results(clf, X_test, y_test):
     selected_method_for_q = {}
     i = 0
     for p in prediction_prob:
-        # p.indices is the array of predicted methods
-        question_index = X_test.index[i]
-        answered_by = {}
-        for method in p.indices:
-            answered_by[METHOD_NAMES[method]] = p.data[method]
-        prediction_by_question_index[question_index] = answered_by
-        selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
-        i += 1
-
-    print(prediction_by_question_index)
-    print(selected_method_for_q)
+        try:
+            # p.indices is the array of predicted methods
+            question_index = X_test.index[i]
+            answered_by = {}
+            for method in p.indices:
+                answered_by[METHOD_NAMES[method]] = p.data[method]
+            prediction_by_question_index[question_index] = answered_by
+            selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
+            i += 1
+        except Exception as e:
+            print("error in " + p)
+            print(e)
+            traceback.print_tb(e.__traceback__)
+            continue
 
     # other methods to test the model
     # r_square = clf.score(X_test, y_test)
@@ -126,16 +129,11 @@ def create_data_df():
             confidence_subs = ConfidenceSubF(df)
             predictions = PredictionsF(df)
             correct_answer = str(df[df['Class'] == 1]['Answer'].iloc[0])
-            res_from_agg_methods = ""
-            res_from_agg_methods += 'HAC' if correct_answer == highest_average_confidence(df) else ''
-            res_from_agg_methods += 'SP' if correct_answer == surprisingly_pop_answer(df) else ''
-            res_from_agg_methods += 'MR' if correct_answer == majority_answer(df) else ''
-            res_from_agg_methods += 'WC' if correct_answer == weighted_confidence(df) else ''
             d = {
-                'HAC': 'HAC' if correct_answer == highest_average_confidence(df) else 'NOT_HAC',
-                'MR': 'MR' if correct_answer == majority_answer(df) else 'NOT_MR',
-                'SP': 'SP' if correct_answer == surprisingly_pop_answer(df) else 'NOT_SP',
-                'WC': 'WC' if correct_answer == weighted_confidence(df) else 'NOT_WC',
+                'HAC': 1 if correct_answer == highest_average_confidence(df) else 0,
+                'MR': 1 if correct_answer == majority_answer(df) else 0,
+                'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
+                'WC': 1 if correct_answer == weighted_confidence(df) else 0,
                 'A_num': answers.feature_get_num_of_answers(),
                 'A_var': answers.get_total_var(),
                 'A_entropy': answers.feature_entropy(),
