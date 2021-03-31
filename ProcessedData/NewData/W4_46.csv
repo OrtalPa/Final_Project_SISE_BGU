@@ -1,0 +1,19 @@
+Worker ID,Problem,Answer,Confidence,1,2,Class,Unnamed: 7
+9,W4_46,2,6,0.34,0.66,Solver,N/A
+25,W4_46,2,6,0.45,0.55,Solver,N/A
+44,W4_46,2,6,0.41,0.59,Solver,N/A
+49,W4_46,2,6,0.2,0.8,Solver,N/A
+52,W4_46,2,6,0.4,0.6,Solver,N/A
+58,W4_46,1,6,0.6,0.4,Non-Solver,N/A
+61,W4_46,1,6,0.7,0.3,Non-Solver,N/A
+66,W4_46,2,8,0.35,0.65,Solver,N/A
+70,W4_46,2,6,0.45,0.55,Solver,N/A
+78,W4_46,2,4,0.35,0.65,Solver,N/A
+82,W4_46,2,8,0.15,0.85,Solver,N/A
+89,W4_46,2,6,0.4,0.6,Solver,N/A
+90,W4_46,2,6,0.4,0.6,Solver,N/A
+108,W4_46,1,6,0.55,0.45,Non-Solver,N/A
+112,W4_46,2,6,0.45,0.55,Solver,N/A
+115,W4_46,1,8,0.35,0.65,Non-Solver,N/A
+116,W4_46,2,4,0.65,0.35,Solver,N/A
+118,W4_46,1,8,0.9,0.1,Non-Solver,N/A
