@@ -1,5 +1,5 @@
 import traceback
-from ProjectFramework.GetProcessedData import get_answer_names
+from GetProcessedData import get_answer_names
 
 
 def surprisingly_pop_answer(df):

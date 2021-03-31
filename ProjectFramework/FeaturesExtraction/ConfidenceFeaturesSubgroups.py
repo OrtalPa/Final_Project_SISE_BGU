@@ -2,7 +2,7 @@ import pandas as pd
 from scipy.stats import entropy
 import numpy as np
 from sklearn.utils import shuffle
-from ProjectFramework.GetProcessedData import get_answer_names
+from GetProcessedData import get_answer_names
 
 NUM_OF_GROUPS = 3
 

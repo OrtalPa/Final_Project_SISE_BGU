@@ -64,7 +64,7 @@ def get_model_results(clf, X_test):
             selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
             i += 1
         except Exception as e:
-            print("error in " + p)
+#             print("error in " + p)
             print(e)
             traceback.print_tb(e.__traceback__)
             continue
@@ -203,4 +203,4 @@ def get_label_names():
 # creates a csv file containing a row for each question with features
 # result = create_data_df()
 # read the result file once it's created
-run_pipeline(get_data())
+# run_pipeline(get_data())
