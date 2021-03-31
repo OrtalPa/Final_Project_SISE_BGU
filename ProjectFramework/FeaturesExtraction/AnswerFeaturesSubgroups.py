@@ -70,6 +70,7 @@ class AnswerSubF:
     # calculates the distance between first and last answer someone picked, divided by the std
     def distance_between_first_and_last_answer(self, answers_count, std):
         sorted_distribution_by_value = sorted(answers_count.values(), reverse=True)
+        last_value = 0
         for value in sorted_distribution_by_value:
             if value != 0:
                 last_value = value
@@ -97,6 +98,7 @@ class AnswerSubF:
         for frame in self.subs:
             entropy_list.append(self.entropy(frame))
         sorted_by_value = sorted(entropy_list, reverse=True)
+        last_value = 0
         for value in sorted_by_value:
             if value != 0:
                 last_value = value
@@ -110,6 +112,7 @@ class AnswerSubF:
             ans_count = self.build_answers_count_array(frame)
             std_list.append(self.get_std(ans_count))
         sorted_by_value = sorted(std_list, reverse=True)
+        last_value = 0
         for value in sorted_by_value:
             if value != 0:
                 last_value = value
@@ -123,6 +126,7 @@ class AnswerSubF:
             ans_count = self.build_answers_count_array(frame)
             var_list.append(self.get_var(ans_count))
         sorted_by_value = sorted(var_list, reverse=True)
+        last_value = 0
         for value in sorted_by_value:
             if value != 0:
                 last_value = value
