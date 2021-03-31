@@ -23,14 +23,17 @@ RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
 
 
 def run_pipeline(data):
-    feature_df = data.drop(METHOD_NAMES.values(), axis=1, errors='ignore')
-    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[METHOD_NAMES.values()], test_size=0.2, random_state=0)
-    classifier = classifier_chain_rf(X_train, X_test, y_train, y_test)
-    results = get_model_results(classifier, X_test, y_test)
+    feature_df = data.drop(get_label_names(), axis=1, errors='ignore')
+    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[get_label_names()], test_size=0.2, random_state=0)
+    classifier = classifier_chain(X_train, y_train, random_forest_cls(X_train, y_train))
+    results = get_model_results(classifier, X_test)
     acc = get_accuracy(results, y_test)
-    print(acc)
+    print(str(acc))
 
 
+# receives results in the form of a dictionary, key: question index ; value: selected method by name
+# y_test is a df with index of questions:
+# for each method there is a column with 1 value if the method was correct for the question and 0 if not
 def get_accuracy(results, y_test):
     count_true = 0
     for res in results.items():
@@ -39,10 +42,11 @@ def get_accuracy(results, y_test):
         real_result = y_test.iloc[y_test.index == q_index][selected_method]
         real_result = real_result[q_index]
         count_true += real_result
-    return str(count_true / len(y_test))
+    return count_true / len(y_test)
 
 
-def get_model_results(clf, X_test, y_test):
+# receives trained multilabel classifier and returns a dictionary with the results
+def get_model_results(clf, X_test):
     prediction_prob = clf.predict_proba(X_test)
 
     # maps the question index to an array of the methods suitable to solve it
@@ -73,17 +77,17 @@ def get_model_results(clf, X_test, y_test):
     return selected_method_for_q
 
 
-def classifier_chain_rf(X_train, X_test, y_train, y_test):
+def classifier_chain(X_train, y_train, classifier):
     # initialize ClassifierChain multi-label classifier with a RandomForest
     clf = ClassifierChain(
-        classifier=RandomForestClassifier(n_estimators=100),
+        classifier=classifier,
     )
     # train
     clf.fit(X_train, y_train)
     return clf
 
 
-def random_forest_cls(X_train, X_test, y_train, y_test):
+def random_forest_cls(X_train, y_train):
     clf = RandomForestClassifier(random_state=0)
     # train
     clf.fit(X_train, y_train)
@@ -187,8 +191,16 @@ def create_data_df():
     return all_data
 
 
+def get_data():
+    result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
+    return result
+
+
+def get_label_names():
+    return METHOD_NAMES.values()
+
+
 # creates a csv file containing a row for each question with features
 # result = create_data_df()
 # read the result file once it's created
-result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
-run_pipeline(result)
+run_pipeline(get_data())
