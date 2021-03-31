@@ -5,6 +5,9 @@ import operator
 
 from sklearn.ensemble import RandomForestClassifier
 from skmultilearn.problem_transform import ClassifierChain
+from skmultilearn.problem_transform import LabelPowerset
+from skmultilearn.problem_transform import BinaryRelevance
+
 from sklearn.model_selection import train_test_split
 from GetProcessedData import get_question_dfs, get_question_dicts
 from AggregationMethods.ConfidenceMethods import *
@@ -46,7 +49,7 @@ def get_accuracy(results, y_test):
 
 
 # receives trained multilabel classifier and returns a dictionary with the results
-def get_model_results(clf, X_test):
+def get_chain_model_results(clf, X_test):
     prediction_prob = clf.predict_proba(X_test)
 
     # maps the question index to an array of the methods suitable to solve it
@@ -64,9 +67,10 @@ def get_model_results(clf, X_test):
             selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
             i += 1
         except Exception as e:
+            print("error")
 #             print("error in " + p)
-            print(e)
-            traceback.print_tb(e.__traceback__)
+#             print(e)
+#             traceback.print_tb(e.__traceback__)
             continue
 
     # other methods to test the model
@@ -77,9 +81,54 @@ def get_model_results(clf, X_test):
     return selected_method_for_q
 
 
+# receives trained multilabel classifier and returns a dictionary with the results
+def get_binary_model_results(clf, X_test):
+    prediction_prob = clf.predict_proba(X_test)
+
+    # maps the question index to an array of the methods suitable to solve it
+    prediction_by_question_index = {}
+    selected_method_for_q = {}
+    i = 0
+    for p in prediction_prob:
+        try:
+            # p.indices is the array of predicted methods
+            question_index = X_test.index[i]
+            answered_by = {}
+            for method in range(len(p.rows[0])):
+                answered_by[METHOD_NAMES[method]] = p.data[0][method]
+            prediction_by_question_index[question_index] = answered_by
+            selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
+            i += 1
+        except Exception as e:
+            print("error")
+            continue
+
+    return selected_method_for_q
+
+
 def classifier_chain(X_train, y_train, classifier):
     # initialize ClassifierChain multi-label classifier with a RandomForest
     clf = ClassifierChain(
+        classifier=classifier,
+    )
+    # train
+    clf.fit(X_train, y_train)
+    return clf
+
+
+def binary_relevance(X_train, y_train, classifier):
+    # initialize BinaryRelevance multi-label classifier
+    clf = BinaryRelevance(
+        classifier=classifier,
+    )
+    # train
+    clf.fit(X_train, y_train)
+    return clf
+
+
+def label_powerset(X_train, y_train, classifier):
+    # initialize LabelPowerset multi-label classifier
+    clf = LabelPowerset(
         classifier=classifier,
     )
     # train
