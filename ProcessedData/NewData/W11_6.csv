@@ -1,0 +1,11 @@
+Worker ID,Problem,Answer,Confidence,1,2,Class,Unnamed: 7
+4,W11_6,2,4,0.37,0.63,Solver,N/A
+29,W11_6,2,6,0.34,0.66,Solver,N/A
+35,W11_6,2,8,0.35,0.65,Solver,N/A
+44,W11_6,2,6,0.15,0.85,Solver,N/A
+52,W11_6,1,4,0.35,0.65,Non-Solver,N/A
+53,W11_6,2,6,0.45,0.55,Solver,N/A
+66,W11_6,2,10,0.0,1.0,Solver,N/A
+78,W11_6,2,4,0.3,0.7,Solver,N/A
+112,W11_6,2,8,0.25,0.75,Solver,N/A
+129,W11_6,2,6,0.5,0.5,Solver,N/A
