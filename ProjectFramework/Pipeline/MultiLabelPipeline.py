@@ -18,6 +18,9 @@ from FeaturesExtraction.AnswerFeaturesSubgroups import AnswerSubF
 from FeaturesExtraction.ConfidenceFeatures import ConfidenceF
 from FeaturesExtraction.ConfidenceFeaturesSubgroups import *
 from FeaturesExtraction.PredictionFeatures import PredictionsF
+from skmultilearn.problem_transform import BinaryRelevance
+from skmultilearn.problem_transform import LabelPowerset
+
 
 # Highest average confidence, surprisingly popular, majority rule, weighted confidence
 METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'SP', 3: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
@@ -109,6 +112,24 @@ def get_binary_model_results(clf, X_test):
 def classifier_chain(X_train, y_train, classifier):
     # initialize ClassifierChain multi-label classifier with a RandomForest
     clf = ClassifierChain(
+        classifier=classifier,
+    )
+    # train
+    clf.fit(X_train, y_train)
+    return clf
+
+def binary_relevance(X_train, y_train, classifier):
+    # initialize BinaryRelevance multi-label classifier
+    clf = BinaryRelevance(
+        classifier=classifier,
+    )
+    # train
+    clf.fit(X_train, y_train)
+    return clf
+
+def label_powerset(X_train, y_train, classifier):
+    # initialize LabelPowerset multi-label classifier
+    clf = LabelPowerset(
         classifier=classifier,
     )
     # train
