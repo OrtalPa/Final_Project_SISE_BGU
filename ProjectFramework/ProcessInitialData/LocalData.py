@@ -6,7 +6,7 @@ import glob
 
 # ------------------- Data gathered by Hila -------------------- #
 
-PATH = r'C:\Users\ortal\Documents\FinalProject\data\UpdatedData'
+PATH = r'C:\Users\ortal\Documents\FinalProject\data\NewData'
 
 
 def arrange_prediction(x):

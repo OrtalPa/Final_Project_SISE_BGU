@@ -1,111 +1,132 @@
 import os
-import traceback
 from pathlib import Path
 from sklearn import metrics
-import numpy as np
+import operator
 
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.neural_network import MLPClassifier
 from skmultilearn.problem_transform import ClassifierChain
 from sklearn.model_selection import train_test_split
-from ProjectFramework.GetProcessedData import get_question_dfs
-from ProjectFramework.AggregationMethods.ConfidenceMethods import highest_average_confidence
-from ProjectFramework.AggregationMethods.SurprisinglyPopular import surprisingly_pop_answer
-from ProjectFramework.AggregationMethods.MajorityRule import majority_answer
-from ProjectFramework.FeaturesExtraction.AnswerFeatures import AnswerF
-from ProjectFramework.FeaturesExtraction.AnswerFeaturesSubgroups import AnswerSubF
-from ProjectFramework.FeaturesExtraction.ConfidenceFeatures import ConfidenceF
-from ProjectFramework.FeaturesExtraction.ConfidenceFeaturesSubgroups import ConfidenceSubF
-from ProjectFramework.FeaturesExtraction.PredictionFeatures import PredictionsF
+from GetProcessedData import get_question_dfs, get_question_dicts
+from AggregationMethods.ConfidenceMethods import *
+from AggregationMethods.SurprisinglyPopular import surprisingly_pop_answer
+from AggregationMethods.MajorityRule import majority_answer
+from FeaturesExtraction.AnswerFeatures import AnswerF
+from FeaturesExtraction.AnswerFeaturesSubgroups import AnswerSubF
+from FeaturesExtraction.ConfidenceFeatures import ConfidenceF
+from FeaturesExtraction.ConfidenceFeaturesSubgroups import *
+from FeaturesExtraction.PredictionFeatures import PredictionsF
+
+# Highest average confidence, surprisingly popular, majority rule, weighted confidence
+METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'SP', 3: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
+path = Path(os.path.abspath(__file__))
+RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
 
 
-METHOD_NAMES = ['HAC', 'SP', 'MR']
+def run_pipeline(data):
+    feature_df = data.drop(get_label_names(), axis=1, errors='ignore')
+    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[get_label_names()], test_size=0.2, random_state=0)
+    classifier = classifier_chain(X_train, y_train, random_forest_cls(X_train, y_train))
+    results = get_model_results(classifier, X_test)
+    acc = get_accuracy(results, y_test)
+    print(str(acc))
 
 
-def run_pipeline():
-    #data = create_data_df()
-    path = Path(os.path.abspath(__file__))
-    data = pd.read_csv(os.path.dirname(path.parent)+"\\results.csv", index_col=0)
-    feature_df = data.drop(METHOD_NAMES, axis=1, errors='ignore')
-    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[METHOD_NAMES], test_size=0.2, random_state=0)
+# receives results in the form of a dictionary, key: question index ; value: selected method by name
+# y_test is a df with index of questions:
+# for each method there is a column with 1 value if the method was correct for the question and 0 if not
+def get_accuracy(results, y_test):
+    count_true = 0
+    for res in results.items():
+        q_index = res[0]  # question index
+        selected_method = str(res[1][0])  # selected method
+        real_result = y_test.iloc[y_test.index == q_index][selected_method]
+        real_result = real_result[q_index]
+        count_true += real_result
+    return count_true / len(y_test)
 
-    clf = MLPClassifier(random_state=1, max_iter=300).fit(X_train, y_train)
-    random_forest = RandomForestClassifier(random_state=0).fit(X_train, y_train)
-    # clf.predict_proba(X_test[:1])
-    pred = clf.predict(X_test)
-    print(pred)
-    print(clf.score(X_test, y_test))
+
+# receives trained multilabel classifier and returns a dictionary with the results
+def get_model_results(clf, X_test):
+    prediction_prob = clf.predict_proba(X_test)
+
+    # maps the question index to an array of the methods suitable to solve it
+    prediction_by_question_index = {}
+    selected_method_for_q = {}
+    i = 0
+    for p in prediction_prob:
+        try:
+            # p.indices is the array of predicted methods
+            question_index = X_test.index[i]
+            answered_by = {}
+            for method in p.indices:
+                answered_by[METHOD_NAMES[method]] = p.data[method]
+            prediction_by_question_index[question_index] = answered_by
+            selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
+            i += 1
+        except Exception as e:
+            print("error in " + p)
+            print(e)
+            traceback.print_tb(e.__traceback__)
+            continue
+
+    # other methods to test the model
+    # r_square = clf.score(X_test, y_test)
+    # accuracy = accuracy_score(y_test, prediction)
+    # rounded_pred = np.around(prediction)
+    # metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
+    return selected_method_for_q
 
 
-    # initialize LabelPowerset multi-label classifier with a RandomForest
-    classifier = ClassifierChain(
-        classifier=RandomForestClassifier(n_estimators=100),
-        require_dense=[False, True]
+def classifier_chain(X_train, y_train, classifier):
+    # initialize ClassifierChain multi-label classifier with a RandomForest
+    clf = ClassifierChain(
+        classifier=classifier,
     )
     # train
-    print("training")
-    classifier.fit(X_train, y_train)
-    # predict
-    print("predicting")
-    predictions = classifier.predict(X_test)
-    print(accuracy_score(y_test, predictions))
-    print("Test set R^2: ", classifier.score(X_test, y_test))
-    print(predictions)
-
-    print("ClassifierChain - RandomForestClassifier")
-    print("Accuracy: " + str(classifier.score(X_test, y_test)))
-    y_predd = np.around(classifier.predict(X_test))
-    print(metrics.classification_report(y_test, y_predd, zero_division=0))
+    clf.fit(X_train, y_train)
+    return clf
 
 
-    y_pred = np.around(clf.predict(X_test))
-    print("MLPClassifier")
-    print("Accuracy: "+str(clf.score(X_test, y_test)))
-    print(metrics.classification_report(y_test, y_pred, zero_division=0))
-
-    print("RandomForestClassifier")
-    print("Accuracy: "+str(random_forest.score(X_test, y_test)))
-    y_pre = np.around(random_forest.predict(X_test))
-    print(metrics.classification_report(y_test, y_pre, zero_division=0))
-    # Construct the Confusion Matrix
-    # labels = ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
-    # cm = confusion_matrix(y_test, pred, labels)
-    # print(cm)
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111)
-    # cax = ax.matshow(cm)
-    # plt.title('Confusion matrix')
-    # fig.colorbar(cax)
-    # ax.set_xticklabels([''] + labels)
-    # ax.set_yticklabels([''] + labels)
-    # plt.xlabel('Predicted Values')
-    # plt.ylabel('Actual Values')
-    # plt.show()
+def random_forest_cls(X_train, y_train):
+    clf = RandomForestClassifier(random_state=0)
+    # train
+    clf.fit(X_train, y_train)
+    return clf
 
 
-    # initialize LabelPowerset multi-label classifier with a RandomForest
-    # classifier = ClassifierChain(
-    #     classifier=RandomForestClassifier(n_estimators=100),
-    #     require_dense=[False, True]
-    # )
-    # # train
-    # print("training")
-    # classifier.fit(X_train, y_train)
-    # # predict
-    # print("predicting")
-    # predictions = classifier.predict(X_test)
-    # print(accuracy_score(y_test, predictions))
-    # print("Test set R^2: ", classifier.score(X_test, y_test))
-    # print(predictions)
+def print_model(model_results):
+    for r in model_results:
+        print(r)
+
+
+'''Confusion Matrix'''
+# # Construct the Confusion Matrix
+# labels = ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
+# cm = confusion_matrix(y_test, prediction, labels)
+# print(cm)
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# cax = ax.matshow(cm)
+# plt.title('Confusion matrix')
+# fig.colorbar(cax)
+# ax.set_xticklabels([''] + labels)
+# ax.set_yticklabels([''] + labels)
+# plt.xlabel('Predicted Values')
+# plt.ylabel('Actual Values')
+# plt.show()
 
 
 def create_data_df():
-    question_dfs = get_question_dfs()
+    # gets the questions data from the files
+    # each question has a df of its own, each row is an answer of a person
+    ## question_dfs = get_question_dfs()
+    question_dict_df = get_question_dicts()
+    # will contain a row for each question at the end
     all_data = pd.DataFrame()
-    for df in question_dfs:
+    for df_name in question_dict_df:
         try:
+            df = question_dict_df[df_name]
+            # create the classes that create the features
             answers = AnswerF(df)
             answers_subs = AnswerSubF(df)
             confidence = ConfidenceF(df)
@@ -113,9 +134,10 @@ def create_data_df():
             predictions = PredictionsF(df)
             correct_answer = str(df[df['Class'] == 1]['Answer'].iloc[0])
             d = {
-                ' ': 1 if correct_answer == highest_average_confidence(df) else 0,
-                'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
+                'HAC': 1 if correct_answer == highest_average_confidence(df) else 0,
                 'MR': 1 if correct_answer == majority_answer(df) else 0,
+                'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
+                'WC': 1 if correct_answer == weighted_confidence(df) else 0,
                 'A_num': answers.feature_get_num_of_answers(),
                 'A_var': answers.get_total_var(),
                 'A_entropy': answers.feature_entropy(),
@@ -153,22 +175,32 @@ def create_data_df():
                 'P_lowest_var': predictions.feature_get_lowest_var_prediction_for_answer(),
                 'P_lowest_std': predictions.feature_get_lowest_std_prediction_for_answer(),
                 'P_above_80': predictions.feature_count_highest_above_80(),
-                'P_predicition': predictions.feature_count_prediction_equal_to_votes(),
+                'P_prediction': predictions.feature_count_prediction_equal_to_votes(),
                 'P_higher_then_vote': predictions.feature_count_prediction_higher_then_votes(),
                 'P_lower_then_votes': predictions.feature_count_prediction_lower_then_votes(),
                 'P_high_con_low_p': predictions.feature_count_high_confidence_low_prediction(),
                 'P_low_con_high_p': predictions.feature_count_low_confidence_high_prediction(),
-
             }
             all_data = all_data.append(d, ignore_index=True)
         except Exception as e:
+            print("error in "+df_name)
             print(e)
             traceback.print_tb(e.__traceback__)
             continue
-    path = Path(os.path.abspath(__file__))
-    all_data.to_csv(os.path.dirname(path.parent)+"\\results.csv")
+    all_data.to_csv(RESULT_FILE_NAME)
     return all_data
 
 
+def get_data():
+    result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
+    return result
 
-run_pipeline()
+
+def get_label_names():
+    return METHOD_NAMES.values()
+
+
+# creates a csv file containing a row for each question with features
+# result = create_data_df()
+# read the result file once it's created
+run_pipeline(get_data())
