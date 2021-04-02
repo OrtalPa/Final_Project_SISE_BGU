@@ -48,8 +48,11 @@ def get_accuracy(results, y_test):
     for res in results.items():
         q_index = res[0]  # question index
         selected_method = str(res[1][0])  # selected method
+        # here real_result is a tuple of (index,result)
         real_result = y_test.iloc[y_test.index == q_index][selected_method]
+        # now we take the result of the index which is 0 or 1
         real_result = real_result[q_index]
+        # add to the count so finally it will be the sum of all correct results
         count_true += real_result
     return count_true / len(y_test)
 
@@ -106,7 +109,7 @@ def get_binary_model_results(clf, X_test):
             selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
             i += 1
         except Exception as e:
-            print("error")
+            print("error in get_binary_model_results")
             print(e)
             continue
 
@@ -270,4 +273,4 @@ def get_label_names():
     return METHOD_NAMES.values()
 
 
-# run_pipeline(get_data())
+run_pipeline(get_data())
