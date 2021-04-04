@@ -26,13 +26,16 @@ from skmultilearn.problem_transform import LabelPowerset
 METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'NONE', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
 RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
+# skip questions that have only 10 respondents and on one answered correctly
 FILES_TO_SKIP = ["RawData_Pills", "W10_0", "W10_15", "W10_16", "W11_18", "W12_12", "W12_31",
-                 "W12_35", "W4_16", "W5_31", "W6_16", "W6_23", "W6_24" "W7_26", "W7_45", "W7_5",
+                 "W12_35", "W4_16", "W5_31", "W6_16", "W6_23", "W6_24", "W7_26", "W7_45", "W7_5",
                  "W8_20", "W8_27", "W9_27"]
 
 
 def run_pipeline(data):
+    # drop label names and dataset id
     feature_df = data.drop(get_label_names(), axis=1, errors='ignore')
+    feature_df = feature_df.drop('dataset_id', axis=1, errors='ignore')
     X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[get_label_names()], test_size=0.2, random_state=0)
     classifier = classifier_chain(X_train, y_train, random_forest_cls(X_train, y_train))
     results = get_chain_model_results(classifier, X_test)
@@ -185,7 +188,6 @@ def no_method_succeeded(df, correct_ans):
 def create_data_df():
     # gets the questions data from the files
     # each question has a df of its own, each row is an answer of a person
-    ## question_dfs = get_question_dfs()
     question_dict_df = get_question_dicts()
     # will contain a row for each question at the end
     all_data = pd.DataFrame()
@@ -203,6 +205,7 @@ def create_data_df():
             predictions = PredictionsF(df)
             correct_answer = str(df[df['Class'] == 1]['Answer'].iloc[0])
             d = {
+                'dataset_id': df_name.split('_')[-1],
                 'HAC': 1 if correct_answer == highest_average_confidence(df) else 0,
                 'MR': 1 if correct_answer == majority_answer(df) else 0,
                 'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
@@ -263,9 +266,9 @@ def create_data_df():
 
 def get_data():
     # creates a csv file containing a row for each question with features
-    # result = create_data_df()
+    result = create_data_df()
     # read the result file once it's created
-    result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
+    # result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
     return result
 
 
@@ -273,4 +276,4 @@ def get_label_names():
     return METHOD_NAMES.values()
 
 
-run_pipeline(get_data())
+# run_pipeline(get_data())
