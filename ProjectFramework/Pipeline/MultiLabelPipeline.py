@@ -4,6 +4,7 @@ from sklearn import metrics
 import operator
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import MinMaxScaler
 from skmultilearn.problem_transform import ClassifierChain
 from skmultilearn.problem_transform import LabelPowerset
 from skmultilearn.problem_transform import BinaryRelevance
@@ -23,6 +24,8 @@ from skmultilearn.problem_transform import LabelPowerset
 
 
 # Highest average confidence, surprisingly popular, majority rule, weighted confidence
+from Pipeline.feature_selection import get_features_with_high_var
+
 METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'NONE', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
 RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
@@ -32,11 +35,19 @@ FILES_TO_SKIP = ["RawData_Pills", "W10_0", "W10_15", "W10_16", "W11_18", "W12_12
                  "W8_20", "W8_27", "W9_27"]
 
 
+def normalize_df(feature_df):
+    scaler = MinMaxScaler()
+    # Fit and transform the data
+    df_norm = pd.DataFrame(scaler.fit_transform(feature_df), columns=feature_df.columns)
+    return df_norm
+
+
 def run_pipeline(data):
     # drop label names and dataset id
     feature_df = data.drop(get_label_names(), axis=1, errors='ignore')
     feature_df = feature_df.drop('dataset_id', axis=1, errors='ignore')
-    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[get_label_names()], test_size=0.2, random_state=0)
+    df_norm = normalize_df(feature_df)
+    X_train, X_test, y_train, y_test = train_test_split(data[list(df_norm.columns)], data[get_label_names()], test_size=0.2, random_state=0)
     classifier = classifier_chain(X_train, y_train, random_forest_cls(X_train, y_train))
     results = get_chain_model_results(classifier, X_test)
     acc = get_accuracy(results, y_test)
@@ -276,4 +287,4 @@ def get_label_names():
     return METHOD_NAMES.values()
 
 
-# run_pipeline(get_data())
+run_pipeline(get_data())
