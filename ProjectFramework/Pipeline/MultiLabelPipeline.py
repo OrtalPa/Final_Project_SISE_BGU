@@ -4,6 +4,7 @@ from sklearn import metrics
 import operator
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import MinMaxScaler
 from skmultilearn.problem_transform import ClassifierChain
 from skmultilearn.problem_transform import LabelPowerset
 from skmultilearn.problem_transform import BinaryRelevance
@@ -23,16 +24,32 @@ from skmultilearn.problem_transform import LabelPowerset
 
 
 # Highest average confidence, surprisingly popular, majority rule, weighted confidence
-METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'SP', 3: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
+from Pipeline.feature_selection import get_features_with_high_var
+
+METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'NONE', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
 RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
+# skip questions that have only 10 respondents and on one answered correctly
+FILES_TO_SKIP = ["RawData_Pills", "W10_0", "W10_15", "W10_16", "W11_18", "W12_12", "W12_31",
+                 "W12_35", "W4_16", "W5_31", "W6_16", "W6_23", "W6_24", "W7_26", "W7_45", "W7_5",
+                 "W8_20", "W8_27", "W9_27"]
+
+
+def normalize_df(feature_df):
+    scaler = MinMaxScaler()
+    # Fit and transform the data
+    df_norm = pd.DataFrame(scaler.fit_transform(feature_df), columns=feature_df.columns)
+    return df_norm
 
 
 def run_pipeline(data):
+    # drop label names and dataset id
     feature_df = data.drop(get_label_names(), axis=1, errors='ignore')
-    X_train, X_test, y_train, y_test = train_test_split(data[list(feature_df.columns)], data[get_label_names()], test_size=0.2, random_state=0)
+    feature_df = feature_df.drop('dataset_id', axis=1, errors='ignore')
+    df_norm = normalize_df(feature_df)
+    X_train, X_test, y_train, y_test = train_test_split(data[list(df_norm.columns)], data[get_label_names()], test_size=0.2, random_state=0)
     classifier = classifier_chain(X_train, y_train, random_forest_cls(X_train, y_train))
-    results = get_model_results(classifier, X_test)
+    results = get_chain_model_results(classifier, X_test)
     acc = get_accuracy(results, y_test)
     print(str(acc))
 
@@ -45,8 +62,11 @@ def get_accuracy(results, y_test):
     for res in results.items():
         q_index = res[0]  # question index
         selected_method = str(res[1][0])  # selected method
+        # here real_result is a tuple of (index,result)
         real_result = y_test.iloc[y_test.index == q_index][selected_method]
+        # now we take the result of the index which is 0 or 1
         real_result = real_result[q_index]
+        # add to the count so finally it will be the sum of all correct results
         count_true += real_result
     return count_true / len(y_test)
 
@@ -64,16 +84,16 @@ def get_chain_model_results(clf, X_test):
             # p.indices is the array of predicted methods
             question_index = X_test.index[i]
             answered_by = {}
+            method_index = 0
             for method in p.indices:
-                answered_by[METHOD_NAMES[method]] = p.data[method]
+                answered_by[METHOD_NAMES[method]] = p.data[method_index]  # data [v, v, v] indices [1,3,4]
+                method_index += 1
             prediction_by_question_index[question_index] = answered_by
             selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
             i += 1
         except Exception as e:
-            print("error")
-#             print("error in " + p)
-#             print(e)
-#             traceback.print_tb(e.__traceback__)
+            print("error in get_chain_model_results")
+            print(e)
             continue
 
     # other methods to test the model
@@ -103,7 +123,8 @@ def get_binary_model_results(clf, X_test):
             selected_method_for_q[question_index] = max(answered_by.items(), key=operator.itemgetter(1))
             i += 1
         except Exception as e:
-            print("error")
+            print("error in get_binary_model_results")
+            print(e)
             continue
 
     return selected_method_for_q
@@ -112,24 +133,6 @@ def get_binary_model_results(clf, X_test):
 def classifier_chain(X_train, y_train, classifier):
     # initialize ClassifierChain multi-label classifier with a RandomForest
     clf = ClassifierChain(
-        classifier=classifier,
-    )
-    # train
-    clf.fit(X_train, y_train)
-    return clf
-
-def binary_relevance(X_train, y_train, classifier):
-    # initialize BinaryRelevance multi-label classifier
-    clf = BinaryRelevance(
-        classifier=classifier,
-    )
-    # train
-    clf.fit(X_train, y_train)
-    return clf
-
-def label_powerset(X_train, y_train, classifier):
-    # initialize LabelPowerset multi-label classifier
-    clf = LabelPowerset(
         classifier=classifier,
     )
     # train
@@ -186,14 +189,23 @@ def print_model(model_results):
 # plt.show()
 
 
+def no_method_succeeded(df, correct_ans):
+    return (correct_ans != highest_average_confidence(df))\
+           and (correct_ans != surprisingly_pop_answer(df))\
+           and (correct_ans != weighted_confidence(df))\
+           and (correct_ans != majority_answer(df))
+
+
 def create_data_df():
     # gets the questions data from the files
     # each question has a df of its own, each row is an answer of a person
-    ## question_dfs = get_question_dfs()
     question_dict_df = get_question_dicts()
     # will contain a row for each question at the end
     all_data = pd.DataFrame()
     for df_name in question_dict_df:
+        if any(name in df_name for name in FILES_TO_SKIP):
+            # skip this file
+            continue
         try:
             df = question_dict_df[df_name]
             # create the classes that create the features
@@ -204,10 +216,12 @@ def create_data_df():
             predictions = PredictionsF(df)
             correct_answer = str(df[df['Class'] == 1]['Answer'].iloc[0])
             d = {
+                'dataset_id': df_name.split('_')[-1],
                 'HAC': 1 if correct_answer == highest_average_confidence(df) else 0,
                 'MR': 1 if correct_answer == majority_answer(df) else 0,
                 'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
                 'WC': 1 if correct_answer == weighted_confidence(df) else 0,
+                'NONE': 1 if no_method_succeeded(df, correct_answer) else 0,
                 'A_num': answers.feature_get_num_of_answers(),
                 'A_var': answers.get_total_var(),
                 'A_entropy': answers.feature_entropy(),
@@ -262,6 +276,9 @@ def create_data_df():
 
 
 def get_data():
+    # creates a csv file containing a row for each question with features
+    # result = create_data_df()
+    # read the result file once it's created
     result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
     return result
 
@@ -270,7 +287,4 @@ def get_label_names():
     return METHOD_NAMES.values()
 
 
-# creates a csv file containing a row for each question with features
-# result = create_data_df()
-# read the result file once it's created
-# run_pipeline(get_data())
+run_pipeline(get_data())
