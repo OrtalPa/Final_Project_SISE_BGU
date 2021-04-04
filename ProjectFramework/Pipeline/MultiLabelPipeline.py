@@ -266,9 +266,9 @@ def create_data_df():
 
 def get_data():
     # creates a csv file containing a row for each question with features
-    result = create_data_df()
+    # result = create_data_df()
     # read the result file once it's created
-    # result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
+    result = pd.read_csv(RESULT_FILE_NAME, index_col=0)
     return result
 
 
