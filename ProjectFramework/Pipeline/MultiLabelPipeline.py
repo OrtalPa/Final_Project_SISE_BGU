@@ -47,7 +47,8 @@ def run_pipeline(data):
     feature_df = data.drop(get_label_names(), axis=1, errors='ignore')
     feature_df = feature_df.drop('dataset_id', axis=1, errors='ignore')
     df_norm = normalize_df(feature_df)
-    X_train, X_test, y_train, y_test = train_test_split(data[list(df_norm.columns)], data[get_label_names()], test_size=0.2, random_state=0)
+    df_norm = pd.DataFrame(get_features_with_high_var(df_norm))
+    X_train, X_test, y_train, y_test = train_test_split(df_norm, data[get_label_names()], test_size=0.2, random_state=0)
     classifier = classifier_chain(X_train, y_train, random_forest_cls(X_train, y_train))
     results = get_chain_model_results(classifier, X_test)
     acc = get_accuracy(results, y_test)
@@ -84,6 +85,8 @@ def get_chain_model_results(clf, X_test):
             # p.indices is the array of predicted methods
             question_index = X_test.index[i]
             answered_by = {}
+            if len(p.indices):
+                continue  # no prediction for this record, will count as 0
             method_index = 0
             for method in p.indices:
                 answered_by[METHOD_NAMES[method]] = p.data[method_index]  # data [v, v, v] indices [1,3,4]
@@ -117,6 +120,8 @@ def get_binary_model_results(clf, X_test):
             # p.indices is the array of predicted methods
             question_index = X_test.index[i]
             answered_by = {}
+            if len(p.rows):
+                continue  # no prediction for this record, will count as 0
             for method in range(len(p.rows[0])):
                 answered_by[METHOD_NAMES[method]] = p.data[0][method]
             prediction_by_question_index[question_index] = answered_by
