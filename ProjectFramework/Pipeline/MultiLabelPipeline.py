@@ -85,7 +85,7 @@ def get_chain_model_results(clf, X_test):
             # p.indices is the array of predicted methods
             question_index = X_test.index[i]
             answered_by = {}
-            if len(p.indices):
+            if len(p.indices) == 0:
                 continue  # no prediction for this record, will count as 0
             method_index = 0
             for method in p.indices:
@@ -120,7 +120,7 @@ def get_binary_model_results(clf, X_test):
             # p.indices is the array of predicted methods
             question_index = X_test.index[i]
             answered_by = {}
-            if len(p.rows):
+            if len(p.rows) == 0:
                 continue  # no prediction for this record, will count as 0
             for method in range(len(p.rows[0])):
                 answered_by[METHOD_NAMES[method]] = p.data[0][method]
@@ -292,4 +292,4 @@ def get_label_names():
     return METHOD_NAMES.values()
 
 
-run_pipeline(get_data())
+# run_pipeline(get_data())
