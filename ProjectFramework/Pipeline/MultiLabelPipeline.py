@@ -26,7 +26,7 @@ from skmultilearn.problem_transform import LabelPowerset
 # Highest average confidence, surprisingly popular, majority rule, weighted confidence
 # from Pipeline.feature_selection import get_features_with_high_var
 
-METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'NONE', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
+METHOD_NAMES = {0: 'HAC', 1: 'MR', 2:'NONE', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
 RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
 # skip questions that have only 10 respondents and on one answered correctly
@@ -287,4 +287,4 @@ def get_label_names():
     return METHOD_NAMES.values()
 
 
-run_pipeline(get_data())
+#run_pipeline(get_data())
