@@ -112,6 +112,7 @@ class ConfidenceSubF:
         for frame in self.subs:
             confidence_list.append(self.get_total_mean(frame['Confidence']))
         sorted_by_value = sorted(confidence_list, reverse=True)
+        last_value = 0
         for value in sorted_by_value:
             if value != 0:
                 last_value = value
@@ -124,6 +125,7 @@ class ConfidenceSubF:
         for frame in self.subs:
             confidence_list.append(self.get_total_var(frame['Confidence']))
         sorted_by_value = sorted(confidence_list, reverse=True)
+        last_value = 0
         for value in sorted_by_value:
             if value != 0:
                 last_value = value
