@@ -39,6 +39,7 @@ FILES_TO_SKIP = ["RawData_Pills", "W10_0", "W10_15", "W10_16", "W11_18", "W12_12
 none_label_flag = True
 method_names = METHOD_NAMES_WITH_NONE
 results_file_name = RESULT_FILE_NAME_WITH_NONE
+sorted_method_names = method_names.values()
 
 
 def set_none_label_flag(flag):
@@ -57,6 +58,19 @@ def normalize_df(feature_df):
     # Fit and transform the data
     df_norm = pd.DataFrame(scaler.fit_transform(feature_df), columns=feature_df.columns)
     return df_norm
+
+
+def decide_order_of_methods(data):
+    global method_names, sorted_method_names
+    methods = method_names.values()
+    method_results = {}
+    for method in methods:
+        method_results[method] = data[method].sum()
+    sorted_method_names = {k: v for k, v in sorted(method_results.items(), key=lambda item: item[1], reverse=True)}
+    index = 0
+    for key in sorted_method_names.keys():
+        method_names[index] = key
+        index += 1
 
 
 def run_pipeline(data):
@@ -91,7 +105,7 @@ def get_accuracy(results, y_test):
 
 # receives trained multilabel classifier and returns a dictionary with the results
 def get_chain_model_results(clf, X_test):
-    prediction_prob = clf.predict(X_test)
+    prediction_prob = clf.predict_proba(X_test)
 
     # maps the question index to an array of the methods suitable to solve it
     prediction_by_question_index = {}
@@ -121,12 +135,12 @@ def get_chain_model_results(clf, X_test):
     # accuracy = accuracy_score(y_test, prediction)
     # rounded_pred = np.around(prediction)
     # metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
-    return prediction_by_question_index
+    return selected_method_for_q
 
 
 # receives trained multilabel classifier and returns a dictionary with the results
 def get_binary_model_results(clf, X_test):
-    prediction_prob = clf.predict(X_test)
+    prediction_prob = clf.predict_proba(X_test)
 
     # maps the question index to an array of the methods suitable to solve it
     prediction_by_question_index = {}
@@ -149,7 +163,7 @@ def get_binary_model_results(clf, X_test):
             print(e)
             continue
 
-    return prediction_by_question_index
+    return selected_method_for_q
 
 
 def classifier_chain(X_train, y_train, classifier):
@@ -216,6 +230,13 @@ def no_method_succeeded(df, correct_ans):
            and (correct_ans != surprisingly_pop_answer(df))\
            and (correct_ans != weighted_confidence(df))\
            and (correct_ans != majority_answer(df))
+
+
+def all_methods_succeeded(df, correct_ans):
+    return (correct_ans == highest_average_confidence(df))\
+           and (correct_ans == surprisingly_pop_answer(df))\
+           and (correct_ans == weighted_confidence(df))\
+           and (correct_ans == majority_answer(df))
 
 
 def create_data_df():
@@ -313,5 +334,7 @@ def get_label_names():
 
 
 if __name__ == "__main__":
-    set_none_label_flag(False)
-    run_pipeline(get_data(create=False))
+    set_none_label_flag(True)
+    data = get_data(create=False)
+    decide_order_of_methods(data)
+    run_pipeline(data)
