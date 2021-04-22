@@ -89,6 +89,25 @@ def run_pipeline(data):
 # receives results in the form of a dictionary, key: question index ; value: selected method by name
 # y_test is a df with index of questions:
 # for each method there is a column with 1 value if the method was correct for the question and 0 if not
+def get_selected_method_for_q_index(results, y_test):
+    q_results = {'q_index':  [], 'selected_method': [], 'was_correct': []}
+    for res in results.items():
+        q_index = res[0]  # question index
+        selected_method = str(res[1][0])  # selected method
+        # here real_result is a tuple of (index,result)
+        real_result = y_test.iloc[y_test.index == q_index][selected_method]
+        # now we take the result of the index which is 0 or 1
+        real_result = real_result[q_index]
+        # add to the dictionary
+        q_results['q_index'].append(q_index)
+        q_results['selected_method'].append(selected_method)
+        q_results['was_correct'].append(real_result)
+    pd.DataFrame.from_dict(q_results).to_csv(os.path.dirname(path.parent) + "\\selected_methods.csv")
+
+
+# receives results in the form of a dictionary, key: question index ; value: selected method by name
+# y_test is a df with index of questions:
+# for each method there is a column with 1 value if the method was correct for the question and 0 if not
 def get_accuracy(results, y_test):
     count_true = 0
     for res in results.items():
