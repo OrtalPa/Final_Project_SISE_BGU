@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from sklearn import metrics
+# from sklearn import metrics
 import operator
 
 from sklearn.ensemble import RandomForestClassifier
@@ -22,6 +22,8 @@ from FeaturesExtraction.PredictionFeatures import PredictionsF
 from skmultilearn.problem_transform import BinaryRelevance
 from skmultilearn.problem_transform import LabelPowerset
 
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import LeaveOneOut
 
 # Highest average confidence, surprisingly popular, majority rule, weighted confidence
 # from Pipeline.feature_selection import get_features_with_high_var
@@ -313,7 +315,7 @@ def create_data_df():
         except Exception as e:
             print("error in "+df_name)
             print(e)
-            traceback.print_tb(e.__traceback__)
+            # traceback.print_tb(e.__traceback__)
             continue
     all_data.to_csv(results_file_name)
     return all_data
@@ -333,8 +335,34 @@ def get_label_names():
     return method_names.values()
 
 
+def michal_test():
+    DATA = get_data()
+    LABELS = get_label_names()
+    decide_order_of_methods(DATA)
+
+    y = DATA[LABELS]
+    x = DATA.drop(LABELS, axis='columns', inplace=False, errors='ignore')
+    x.drop('dataset_id', axis='columns', inplace=True, errors='ignore')
+    Accuracy = {}
+    results_p_lr = {}
+
+    loo = LeaveOneOut()
+    loo.get_n_splits(x)
+
+    for train_index, test_index in loo.split(x):
+        x_train, x_test = x.loc[train_index], x.loc[test_index]
+        y_train, y_test = y.loc[train_index], y.loc[test_index]
+
+        clf_chain_LR = label_powerset(x_train, y_train, LogisticRegression(solver='liblinear', max_iter=10000))
+        results_p_lr.update(get_binary_model_results(clf_chain_LR, x_test))
+        break
+
+    Accuracy['p_LR'] = get_accuracy(results_p_lr, y)
+
+
 if __name__ == "__main__":
     set_none_label_flag(True)
     data = get_data(create=False)
     decide_order_of_methods(data)
-    run_pipeline(data)
+    #run_pipeline(data)
+    michal_test()
