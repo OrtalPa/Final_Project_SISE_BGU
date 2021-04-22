@@ -91,7 +91,7 @@ def get_accuracy(results, y_test):
 
 # receives trained multilabel classifier and returns a dictionary with the results
 def get_chain_model_results(clf, X_test):
-    prediction_prob = clf.predict_proba(X_test)
+    prediction_prob = clf.predict(X_test)
 
     # maps the question index to an array of the methods suitable to solve it
     prediction_by_question_index = {}
@@ -121,12 +121,12 @@ def get_chain_model_results(clf, X_test):
     # accuracy = accuracy_score(y_test, prediction)
     # rounded_pred = np.around(prediction)
     # metrics_cls_report = metrics.classification_report(y_test, rounded_pred, zero_division=0)
-    return selected_method_for_q
+    return prediction_by_question_index
 
 
 # receives trained multilabel classifier and returns a dictionary with the results
 def get_binary_model_results(clf, X_test):
-    prediction_prob = clf.predict_proba(X_test)
+    prediction_prob = clf.predict(X_test)
 
     # maps the question index to an array of the methods suitable to solve it
     prediction_by_question_index = {}
@@ -149,7 +149,7 @@ def get_binary_model_results(clf, X_test):
             print(e)
             continue
 
-    return selected_method_for_q
+    return prediction_by_question_index
 
 
 def classifier_chain(X_train, y_train, classifier):
@@ -314,4 +314,4 @@ def get_label_names():
 
 if __name__ == "__main__":
     set_none_label_flag(False)
-    run_pipeline(get_data(create=True))
+    run_pipeline(get_data(create=False))
