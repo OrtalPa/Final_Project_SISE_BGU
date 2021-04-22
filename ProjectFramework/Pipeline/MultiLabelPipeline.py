@@ -24,9 +24,9 @@ from skmultilearn.problem_transform import LabelPowerset
 
 
 # Highest average confidence, surprisingly popular, majority rule, weighted confidence
-# from Pipeline.feature_selection import get_features_with_high_var
+from Pipeline.feature_selection import get_features_with_high_var
 
-METHOD_NAMES = {0: 'HAC', 1: 'MR', 2:'NONE', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
+METHOD_NAMES = {0: 'HAC', 1: 'MR', 2: 'NONE', 3:'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
 RESULT_FILE_NAME = os.path.dirname(path.parent)+"\\results.csv"
 # skip questions that have only 10 respondents and on one answered correctly
@@ -96,7 +96,7 @@ def get_chain_model_results(clf, X_test):
             i += 1
         except Exception as e:
             print("error in get_chain_model_results")
-            print(e)
+            # print(e)
             continue
 
     # other methods to test the model
@@ -129,7 +129,7 @@ def get_binary_model_results(clf, X_test):
             i += 1
         except Exception as e:
             print("error in get_binary_model_results")
-            print(e)
+            # print(e)
             continue
 
     return selected_method_for_q
