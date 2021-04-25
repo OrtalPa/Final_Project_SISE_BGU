@@ -354,6 +354,6 @@ def get_label_names():
 
 if __name__ == "__main__":
     set_none_label_flag(True)
-    data = get_data(create=False)
+    data = get_data(create=True)
     decide_order_of_methods(data)
     run_pipeline(data)

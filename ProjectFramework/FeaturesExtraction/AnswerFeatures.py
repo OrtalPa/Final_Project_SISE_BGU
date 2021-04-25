@@ -77,6 +77,7 @@ class AnswerF:
 
     # calculates the distance between first and last answer someone picked, divided by the std
     def feature_distance_between_first_and_last_answer(self):
+        last_value = 0
         for value in self.sorted_distribution_by_value:
             if value != 0:
                 last_value = value

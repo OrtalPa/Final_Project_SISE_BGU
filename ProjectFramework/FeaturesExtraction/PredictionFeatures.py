@@ -1,8 +1,5 @@
 import pandas as pd
-from scipy.stats import entropy
 import numpy as np
-from sklearn.utils import shuffle
-from scipy.stats import wasserstein_distance
 from GetProcessedData import get_answer_names
 
 
@@ -14,6 +11,7 @@ class PredictionsF:
         self.unique_answers = get_answer_names(df)
         self.df_pred = df[self.unique_answers]
         self.num_of_ans = self.unique_answers.size
+        self.num_of_responses = len(self.df.index)
 
     # get number of solvers how chose answer "ans_name"
     def get_answers_number(self, ans_name):
@@ -86,7 +84,7 @@ class PredictionsF:
             for i in highest:
                 if i >= 0.80:
                     counter += 1
-        return float(counter / len(self.df.index))
+        return float(counter / self.num_of_responses)
 
     ######################################## prediction && confidence features ##########################################
 
@@ -98,7 +96,7 @@ class PredictionsF:
             for index,row in test_df.iterrows():
                 if row['Confidence'] > 0.8 and row[answer] < 0.2:
                     counter += 1
-        return counter
+        return counter/self.num_of_responses
 
     # get the count of high prediction and low confidence
     def feature_count_low_confidence_high_prediction(self):
@@ -106,9 +104,9 @@ class PredictionsF:
         for answer in self.unique_answers:
             test_df = self.df[self.df['Answer'] == answer]
             for index, row in test_df.iterrows():
-                if row['Confidence'] < 0.5 and row[answer] > 0.5:
+                if row['Confidence'] < 0.5 < row[answer]:
                     counter += 1
-        return counter
+        return counter/self.num_of_responses
 
     # get the count of high prediction and low votes
     def feature_count_prediction_higher_then_votes(self):
@@ -119,7 +117,7 @@ class PredictionsF:
             for index, row in test_df.iterrows():
                 if row[answer] > votes[answer] and votes[answer] < 0.4:
                     counter += 1
-        return counter
+        return counter/self.num_of_responses
 
     # get the count of low prediction and high votes
     def feature_count_prediction_lower_then_votes(self):
@@ -130,7 +128,7 @@ class PredictionsF:
             for index, row in test_df.iterrows():
                 if row[answer] < votes[answer] and votes[answer] > 0.5:
                     counter += 1
-        return counter
+        return counter/self.num_of_responses
 
     # get the count of prediction equal votes
     def feature_count_prediction_equal_to_votes(self):
@@ -141,7 +139,7 @@ class PredictionsF:
             for index, row in test_df.iterrows():
                 if row[answer] - 0.05 < votes[answer] < row[answer] + 0.05:
                     counter += 1
-        return counter
+        return counter/self.num_of_responses
 
 
 # test function
