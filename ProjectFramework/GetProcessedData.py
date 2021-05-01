@@ -28,11 +28,12 @@ def get_file_name(file_path):
     return file_path.split(sep="\\")[-1].split(sep='.')[0]
 
 
-def get_question_dicts():
+def get_question_dicts(with_non_binary=True):
     dict_of_df = {}
     # key: <filename>_<datasetnumber> value: df
-    for file_path in glob.glob(f"{DATA_PATH}\\*.csv"):
-        dict_of_df[f'{get_file_name(file_path)}_0'] = get_df(file_path)
+    if with_non_binary:
+        for file_path in glob.glob(f"{DATA_PATH}\\*.csv"):
+            dict_of_df[f'{get_file_name(file_path)}_0'] = get_df(file_path)
     for file_path in glob.glob(f"{DATA_PATH}\\Article\\*.csv"):
         dict_of_df[f'{get_file_name(file_path)}_1'] = get_df(file_path)
     for file_path in glob.glob(f"{DATA_PATH}\\NewData\\*.csv"):

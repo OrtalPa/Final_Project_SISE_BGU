@@ -10,6 +10,8 @@ from skmultilearn.problem_transform import LabelPowerset
 from skmultilearn.problem_transform import BinaryRelevance
 
 from sklearn.model_selection import train_test_split
+
+from AggregationMethods.NAClassifier import na_answer
 from GetProcessedData import get_question_dfs, get_question_dicts
 from AggregationMethods.ConfidenceMethods import *
 from AggregationMethods.SurprisinglyPopular import surprisingly_pop_answer
@@ -261,7 +263,7 @@ def all_methods_succeeded(df, correct_ans):
 def create_data_df():
     # gets the questions data from the files
     # each question has a df of its own, each row is an answer of a person
-    question_dict_df = get_question_dicts()
+    question_dict_df = get_question_dicts(with_non_binary=False)
     # will contain a row for each question at the end
     all_data = pd.DataFrame()
     for df_name in question_dict_df:
@@ -283,6 +285,7 @@ def create_data_df():
                 'MR': 1 if correct_answer == majority_answer(df) else 0,
                 'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
                 'WC': 1 if correct_answer == weighted_confidence(df) else 0,
+                'NA': 1 if correct_answer == na_answer(df, surprisingly_pop_answer(df), majority_answer(df), highest_average_confidence(df)) else 0,
                 'A_num': answers.feature_get_num_of_answers(),
                 'A_var': answers.get_total_var(),
                 'A_entropy': answers.feature_entropy(),
