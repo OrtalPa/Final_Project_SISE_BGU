@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
+
+import numpy
 from sklearn import metrics
 import operator
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MinMaxScaler
 from skmultilearn.problem_transform import ClassifierChain
 from skmultilearn.problem_transform import LabelPowerset
@@ -29,9 +32,9 @@ from skmultilearn.problem_transform import LabelPowerset
 # from Pipeline.feature_selection import get_features_with_high_var
 
 METHOD_NAMES_NO_NONE = {0: 'HAC', 1: 'MR', 2: 'SP', 3: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
-METHOD_NAMES_WITH_NONE = {0: 'HAC', 1: 'MR', 2: 'NONE', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
+METHOD_NAMES_WITH_NONE = {0: 'HAC', 1: 'MR', 2: 'NA', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
-RESULT_FILE_NAME_WITH_NONE = os.path.dirname(path.parent) + "\\results_with_none.csv"
+RESULT_FILE_NAME_WITH_NONE = os.path.dirname(path.parent) + "\\results_with_none_correct.csv"
 RESULT_FILE_NAME_NO_NONE = os.path.dirname(path.parent) + "\\results_no_none.csv"
 # skip questions that have only 10 respondents and on one answered correctly
 FILES_TO_SKIP = ["RawData_Pills", "W10_0", "W10_15", "W10_16", "W11_18", "W12_12", "W12_31",
@@ -78,14 +81,24 @@ def decide_order_of_methods(data):
 def run_pipeline(data):
     # drop label names and dataset id
     feature_df = data.drop(get_label_names(), axis=1, errors='ignore')
-    feature_df = feature_df.drop('dataset_id', axis=1, errors='ignore')
-    df_norm = normalize_df(feature_df)
+    feature_df = feature_df.drop(['dataset_id', 'NONE'], axis=1, errors='ignore')
+    # df_norm = normalize_df(feature_df)
     # df_norm = pd.DataFrame(get_features_with_high_var(df_norm))
-    X_train, X_test, y_train, y_test = train_test_split(df_norm, data[get_label_names()], test_size=0.2, random_state=0)
-    classifier = classifier_chain(X_train, y_train, random_forest_cls(X_train, y_train))
-    results = get_chain_model_results(classifier, X_test)
-    acc = get_accuracy(results, y_test)
-    print(str(acc))
+    X_train, X_test, y_train, y_test = train_test_split(feature_df, data[get_label_names()], test_size=0.2, random_state=0)
+    classifier = label_powerset(X_train, y_train, LogisticRegression(solver='liblinear', max_iter=10000))
+    #prediction_prob = classifier.predict(X_test)
+    #prediction_prob = prediction_prob.transpose().toarray()
+    #print(metrics.classification_report(y_test, prediction_prob))
+
+    results = get_binary_model_results(classifier, X_test)
+    results = pd.DataFrame.from_dict(results).transpose().fillna(0)
+    results['HAC'] = numpy.zeros(len(results.index))
+
+    results = results.to_numpy()
+    print(metrics.classification_report(y_test, results))
+
+#    acc = get_accuracy(results, y_test)
+#    print(str(acc))
 
 
 # receives results in the form of a dictionary, key: question index ; value: selected method by name
@@ -263,7 +276,7 @@ def all_methods_succeeded(df, correct_ans):
 def create_data_df():
     # gets the questions data from the files
     # each question has a df of its own, each row is an answer of a person
-    question_dict_df = get_question_dicts(with_non_binary=False)
+    question_dict_df = get_question_dicts()
     # will contain a row for each question at the end
     all_data = pd.DataFrame()
     for df_name in question_dict_df:
@@ -286,6 +299,7 @@ def create_data_df():
                 'SP': 1 if correct_answer == surprisingly_pop_answer(df) else 0,
                 'WC': 1 if correct_answer == weighted_confidence(df) else 0,
                 'NA': 1 if correct_answer == na_answer(df, surprisingly_pop_answer(df), majority_answer(df), highest_average_confidence(df)) else 0,
+                'question': df_name[:df_name.rfind('_')],
                 'A_num': answers.feature_get_num_of_answers(),
                 'A_var': answers.get_total_var(),
                 'A_entropy': answers.feature_entropy(),
@@ -357,6 +371,6 @@ def get_label_names():
 
 if __name__ == "__main__":
     set_none_label_flag(True)
-    data = get_data(create=True)
+    data = get_data(create=False)
     decide_order_of_methods(data)
     run_pipeline(data)
