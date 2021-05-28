@@ -6,7 +6,7 @@ import glob
 
 # ------------------- Data gathered by Hila -------------------- #
 
-PATH = r'C:\Users\ortal\Documents\FinalProject\data\NewData\Split'
+PATH = r'C:\Users\ortal\Documents\FinalProject\data\NewData\SplitV2'
 
 
 def arrange_prediction(x):
@@ -26,7 +26,7 @@ def get_answer_names(data_frame):
     return pd.Series(data_frame.columns).apply(lambda x: str(x))
 
 
-for file_path in glob.glob(f"{PATH}\\*.csv"):
+for file_path in glob.glob(f"{PATH}\\politics_responses\\*.csv"):
     try:
         df = pd.read_csv(file_path)
         cols = ['Answer', 'Confidence', 'Class']
@@ -46,7 +46,7 @@ for file_path in glob.glob(f"{PATH}\\*.csv"):
         df['Class'] = df['Class'].apply(lambda x: 1 if str(x).lower() == 'solver' else 0)
         # Write the processed df to csv
         file_name = file_path.split(sep="\\")[-1].split(sep='.')[0]
-        df.to_csv(f'{PATH}\\ProcessedData\\{file_name}.csv')
+        df.to_csv(f'{PATH}\\ProcessedData\\politics_responses\\{file_name}.csv')
     except Exception as e:
         print(e)
         print('exception in ' + file_path, sys.exc_info()[0])

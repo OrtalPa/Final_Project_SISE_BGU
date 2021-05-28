@@ -4,8 +4,8 @@ from GetProcessedData import get_answer_names
 def na_answer(df, sp_answer, mr_answer, hac_answer):
     answers = get_answer_names(df)
     # verify input
-    if len(answers) > 2:
-        raise Exception(f'received question with more than 2 answers: {answers}')
+    # if len(answers) > 2:
+    #    raise Exception(f'received question with more than 2 answers: {answers}')
     # if sp_answer not in answers or mr_answer not in answers or hac_answer not in answers:
     #     raise Exception(f'{sp_answer} or {mr_answer} or {hac_answer} is not in {answers}')
     # count for each answer how many methods selected it
