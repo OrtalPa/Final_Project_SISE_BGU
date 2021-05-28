@@ -34,7 +34,7 @@ from skmultilearn.problem_transform import LabelPowerset
 METHOD_NAMES_NO_NONE = {0: 'HAC', 1: 'MR', 2: 'SP', 3: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 METHOD_NAMES_WITH_NONE = {0: 'HAC', 1: 'MR', 2: 'NA', 3: 'SP', 4: 'WC'}  # maps the method name to an index. DO NOT REPLACE ORDER
 path = Path(os.path.abspath(__file__))
-RESULT_FILE_NAME_WITH_NONE = os.path.dirname(path.parent) + "\\results_with_none_correct.csv"
+RESULT_FILE_NAME_WITH_NONE = os.path.dirname(path.parent) + "\\results_with_none.csv"
 RESULT_FILE_NAME_NO_NONE = os.path.dirname(path.parent) + "\\results_no_none.csv"
 # skip questions that have only 10 respondents and on one answered correctly
 FILES_TO_SKIP = ["RawData_Pills", "W10_0", "W10_15", "W10_16", "W11_18", "W12_12", "W12_31",
