@@ -45,6 +45,11 @@ def calculate_when_method_answers_correctly(method, df_test, df_train):
 
 
 if __name__ == "__main__":
+    # create a file with:
+    # get the results of the model -> for each method the prediction
+
+
+
     print(DATA_PATH)
     df_dict = get_df_dict()
     df_correct = get_data()

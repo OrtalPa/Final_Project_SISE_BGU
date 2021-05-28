@@ -3,6 +3,8 @@ import glob
 import os
 from pathlib import Path
 
+from ProcessInitialData.NewData import get_list_of_questions_for_dataset
+
 path = Path(os.path.abspath(__file__))
 DATA_PATH = os.path.dirname(path.parent) + '\\ProcessedData'
 
@@ -19,7 +21,11 @@ def get_question_dfs():
         list_of_df.append(get_df(file_path))
     for file_path in glob.glob(f"{DATA_PATH}\\Article\\*.csv"):
         list_of_df.append(get_df(file_path))
-    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\*.csv"):
+    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\nba_responses\\*.csv"):
+        list_of_df.append(get_df(file_path))
+    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\nfl_responses\\*.csv"):
+        list_of_df.append(get_df(file_path))
+    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\politics_responses\\*.csv"):
         list_of_df.append(get_df(file_path))
     return list_of_df
 
@@ -36,8 +42,12 @@ def get_question_dicts(with_non_binary=True):
             dict_of_df[f'{get_file_name(file_path)}_0'] = get_df(file_path)
     for file_path in glob.glob(f"{DATA_PATH}\\Article\\*.csv"):
         dict_of_df[f'{get_file_name(file_path)}_1'] = get_df(file_path)
-    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\*.csv"):
+    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\nba_responses\\*.csv"):
         dict_of_df[f'{get_file_name(file_path)}_2'] = get_df(file_path)
+    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\nfl_responses\\*.csv"):
+        dict_of_df[f'{get_file_name(file_path)}_3'] = get_df(file_path)
+    for file_path in glob.glob(f"{DATA_PATH}\\NewData\\politics_responses\\*.csv"):
+        dict_of_df[f'{get_file_name(file_path)}_4'] = get_df(file_path)
     return dict_of_df
 
 
